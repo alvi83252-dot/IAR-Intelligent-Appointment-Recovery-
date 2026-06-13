@@ -174,6 +174,15 @@ export interface AppointmentRequest {
   availability: string[];
   preferredProvider?: string;
   urgencyNotes?: string;
+  patientName: string;
+  email: string;
+  phone: string;
+}
+
+export interface PatientContact {
+  name: string;
+  email: string;
+  phone: string;
 }
 
 export interface CapacityMetrics {

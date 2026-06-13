@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const variants: Variants = {
@@ -14,6 +14,8 @@ interface ScrollRevealProps {
   delay?: number;
   direction?: "up" | "down" | "left" | "right";
   once?: boolean;
+  blur?: boolean;
+  scale?: boolean;
 }
 
 const directionOffset = {
@@ -29,17 +31,35 @@ export function ScrollReveal({
   delay = 0,
   direction = "up",
   once = true,
+  blur = true,
+  scale = true,
 }: ScrollRevealProps) {
+  const reducedMotion = useReducedMotion();
   const offset = directionOffset[direction];
+
+  if (reducedMotion) {
+    return <div className={cn(className)}>{children}</div>;
+  }
 
   return (
     <motion.div
       className={cn(className)}
-      initial={{ opacity: 0, ...offset }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      initial={{
+        opacity: 0,
+        ...offset,
+        filter: blur ? "blur(8px)" : "blur(0px)",
+        scale: scale ? 0.96 : 1,
+      }}
+      whileInView={{
+        opacity: 1,
+        x: 0,
+        y: 0,
+        filter: "blur(0px)",
+        scale: 1,
+      }}
       viewport={{ once, margin: "-80px" }}
       transition={{
-        duration: 0.65,
+        duration: 0.7,
         delay,
         ease: [0.21, 0.47, 0.32, 0.98],
       }}

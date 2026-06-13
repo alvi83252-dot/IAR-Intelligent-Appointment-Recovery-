@@ -59,6 +59,13 @@
     html {
       scroll-behavior: auto;
     }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
@@ -71,5 +78,18 @@
   }
   .text-gradient {
     @apply bg-gradient-to-r from-iar-teal to-iar-sky bg-clip-text text-transparent;
+  }
+  .animate-shimmer-border {
+    background-size: 200% 100%;
+    animation: shimmer-border 8s linear infinite;
+  }
+}
+
+@keyframes shimmer-border {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }

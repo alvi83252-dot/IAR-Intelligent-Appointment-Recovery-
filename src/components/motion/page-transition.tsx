@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 const pageVariants = {
@@ -34,6 +34,11 @@ const pageVariants = {
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const reducedMotion = useReducedMotion();
+
+  if (reducedMotion) {
+    return <div className="min-h-[calc(100vh-4rem)]">{children}</div>;
+  }
 
   return (
     <motion.div

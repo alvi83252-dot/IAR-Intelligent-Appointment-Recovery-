@@ -33,6 +33,7 @@ import {
   runDisruptionCascade,
 } from "@/services/orchestrator";
 import type { AppointmentRequest } from "@/types";
+import type { PatientContact } from "@/types";
 
 pasAdapter.initialize(INITIAL_PAS_SLOTS, INITIAL_APPOINTMENTS);
 
@@ -46,6 +47,23 @@ interface IARState {
   agentCards: AgentCard[];
   lastAssessment: PriorityAssessment | null;
   lastBookedAppointment: Appointment | null;
+  patientContact: PatientContact | null;
+  lastNotificationResults: Array<{
+    channel: string;
+    success: boolean;
+    demo: boolean;
+    fallback?: boolean;
+    message: string;
+    detail?: string;
+  }> | null;
+  lastCalendarResult: {
+    success: boolean;
+    demo: boolean;
+    fallback?: boolean;
+    provider: string;
+    message: string;
+    calendlyUrl?: string;
+  } | null;
   capacityMetrics: typeof CAPACITY_METRICS;
   pasSnapshot: PasLedgerSnapshot;
   pasWriteLog: PasWriteLog[];
@@ -75,6 +93,9 @@ export const useIARStore = create<IARState>((set, get) => ({
   agentCards: AGENT_CARDS,
   lastAssessment: null,
   lastBookedAppointment: null,
+  patientContact: null,
+  lastNotificationResults: null,
+  lastCalendarResult: null,
   capacityMetrics: CAPACITY_METRICS,
   pasSnapshot: pasAdapter.getSnapshot(),
   pasWriteLog: pasAdapter.getWriteLog(),
@@ -121,6 +142,11 @@ export const useIARStore = create<IARState>((set, get) => ({
 
       set((state) => ({
         lastBookedAppointment: appointment,
+        patientContact: {
+          name: request.patientName,
+          email: request.email,
+          phone: request.phone,
+        },
         notifications: [
           {
             id: `notif_${Date.now()}`,
@@ -267,6 +293,9 @@ export const useIARStore = create<IARState>((set, get) => ({
       agentCards: AGENT_CARDS,
       lastAssessment: null,
       lastBookedAppointment: null,
+      patientContact: null,
+      lastNotificationResults: null,
+      lastCalendarResult: null,
       capacityMetrics: CAPACITY_METRICS,
       pasSnapshot: pasAdapter.getSnapshot(),
       pasWriteLog: pasAdapter.getWriteLog(),
