@@ -173,6 +173,7 @@ export interface AppointmentRequest {
   symptoms: string;
   availability: string[];
   preferredProvider?: string;
+  preferredSlotId?: string;
   urgencyNotes?: string;
   patientName: string;
   email: string;

@@ -13,6 +13,7 @@ import { APP_NAME, isDemoMode } from "@/lib/config";
 
 const navLinks = [
   { href: "/dashboard", label: "Patient" },
+  { href: "/copilot", label: "Copilot" },
   { href: "/request", label: "Request" },
   { href: "/agents", label: "Agents" },
   { href: "/swap", label: "Swap Center" },

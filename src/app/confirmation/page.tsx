@@ -195,6 +195,35 @@ export default function BookingConfirmationPage() {
                 </Button>
               </div>
             )}
+            {notificationResults?.map((result) => (
+              <div key={result.channel} className="flex items-start gap-2">
+                {result.channel === "sms" ? (
+                  <MessageSquare className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : (
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p>
+                    {result.message}
+                    {result.demo && (
+                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">in-app</span>
+                    )}
+                  </p>
+                  {result.detail && (
+                    <p className="mt-1 whitespace-pre-wrap rounded-lg bg-background/80 p-2 text-xs text-muted-foreground">
+                      {result.detail.slice(0, 320)}
+                    </p>
+                  )}
+                  {result.actionUrl && (
+                    <Button variant="outline" size="sm" className="mt-2" asChild>
+                      <a href={result.actionUrl}>
+                        {result.channel === "sms" ? "Open in Messages" : "Open in email app"}
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
             {calendarResult && (
               <div className="space-y-2">
                 <p className={`flex items-start gap-2 ${calendarResult.success ? undefined : "text-destructive"}`}>
