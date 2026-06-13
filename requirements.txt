@@ -1,0 +1,6 @@
+# IAR Python agents — runtime dependencies.
+# Scope so far: the swappable LLM layer (Google Gemini) + .env loading.
+# Additional agent deps (a2a-sdk, fastapi/uvicorn, pydantic, httpx, ics, ...)
+# are added as the A2A servers are built out — see CLAUDE.md "Repo structure".
+google-genai>=0.3.0
+python-dotenv>=1.0.0
