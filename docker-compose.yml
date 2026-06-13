@@ -1,0 +1,62 @@
+# IAR three-agent A2A system, template-shaped.
+#   personal-agent (:9001) -> frontdesk-agent (:9002) -> research-agent (:9003)
+#   research-agent uses Redis for the knowledge-base RAG index.
+# Credentials are substituted from the host .env (GEMINI_API_KEY / GOOGLE_API_KEY).
+
+services:
+  personal-agent:
+    build:
+      context: .
+      dockerfile: agents/personal/Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      MODEL: ${MODEL:-gemini-3.5-flash}
+      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-false}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      FRONTDESK_AGENT_URL: http://frontdesk-agent:9002/
+    depends_on:
+      - frontdesk-agent
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontdesk-agent:
+    build:
+      context: .
+      dockerfile: agents/frontdesk/Dockerfile
+    ports:
+      - "9002:9002"
+    environment:
+      MODEL: ${MODEL:-gemini-3.5-flash}
+      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-false}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      RESEARCH_AGENT_URL: http://research-agent:9003/
+    depends_on:
+      - research-agent
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  research-agent:
+    build:
+      context: .
+      dockerfile: agents/research/Dockerfile
+    ports:
+      - "9003:9003"
+    environment:
+      MODEL: ${MODEL:-gemini-3.5-flash}
+      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-false}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
+      LINKUP_API_KEY: ${LINKUP_API_KEY:-}
+    depends_on:
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
