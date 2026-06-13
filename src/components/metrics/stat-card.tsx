@@ -33,8 +33,8 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, index = 0,
                 <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">{trend}</p>
               )}
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-careflow-teal/10">
-              <Icon className="h-5 w-5 text-careflow-teal" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-iar-teal/10">
+              <Icon className="h-5 w-5 text-iar-teal" />
             </div>
           </div>
         </CardContent>

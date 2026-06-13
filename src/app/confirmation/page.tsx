@@ -6,13 +6,13 @@ import { Calendar, CheckCircle, Download, MapPin, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PriorityBadge } from "@/components/priority/priority-badge";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { downloadICS, generateFullCalendarPackage } from "@/lib/calendar";
 import { formatDate, formatTime } from "@/lib/utils";
 
 export default function BookingConfirmationPage() {
-  const lastBooked = useCareFlowStore((s) => s.lastBookedAppointment);
-  const appointments = useCareFlowStore((s) => s.appointments);
+  const lastBooked = useIARStore((s) => s.lastBookedAppointment);
+  const appointments = useIARStore((s) => s.appointments);
 
   const appointment = lastBooked ?? appointments[0];
 
@@ -29,7 +29,7 @@ export default function BookingConfirmationPage() {
 
   const handleDownloadCalendar = () => {
     const ics = generateFullCalendarPackage(appointment);
-    downloadICS(ics, `careflow-appointment-${appointment.id}.ics`);
+    downloadICS(ics, `iar-appointment-${appointment.id}.ics`);
   };
 
   return (

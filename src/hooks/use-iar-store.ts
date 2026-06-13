@@ -36,7 +36,7 @@ import type { AppointmentRequest } from "@/types";
 
 pasAdapter.initialize(INITIAL_PAS_SLOTS, INITIAL_APPOINTMENTS);
 
-interface CareFlowState {
+interface IARState {
   appointments: Appointment[];
   swapProposals: SwapProposal[];
   disruption: DisruptionEvent;
@@ -65,7 +65,7 @@ interface CareFlowState {
   resetDemo: () => void;
 }
 
-export const useCareFlowStore = create<CareFlowState>((set, get) => ({
+export const useIARStore = create<IARState>((set, get) => ({
   appointments: INITIAL_APPOINTMENTS,
   swapProposals: INITIAL_SWAP_PROPOSALS,
   disruption: INITIAL_DISRUPTION,

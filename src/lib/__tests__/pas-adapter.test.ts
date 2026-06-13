@@ -37,7 +37,7 @@ describe("pasAdapter", () => {
 
   it("returns ledger snapshot", () => {
     const snapshot = pasAdapter.getSnapshot();
-    expect(snapshot.ledger).toBe("System C CareFlow");
+    expect(snapshot.ledger).toBe("System C IAR");
     expect(snapshot.practiceName).toContain("GP");
   });
 });

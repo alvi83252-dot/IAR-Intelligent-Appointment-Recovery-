@@ -7,14 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/metrics/stat-card";
 import { ActivityTimeline } from "@/components/timeline/activity-timeline";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { formatDateTime } from "@/lib/utils";
 
 export default function DisruptionDashboardPage() {
-  const disruption = useCareFlowStore((s) => s.disruption);
-  const timeline = useCareFlowStore((s) => s.timeline);
-  const runRecovery = useCareFlowStore((s) => s.runDisruptionRecovery);
-  const isProcessing = useCareFlowStore((s) => s.isProcessing);
+  const disruption = useIARStore((s) => s.disruption);
+  const timeline = useIARStore((s) => s.timeline);
+  const runRecovery = useIARStore((s) => s.runDisruptionRecovery);
+  const isProcessing = useIARStore((s) => s.isProcessing);
 
   const disruptionEvents = timeline.filter(
     (e) => e.type === "disruption" || e.type === "recovery"

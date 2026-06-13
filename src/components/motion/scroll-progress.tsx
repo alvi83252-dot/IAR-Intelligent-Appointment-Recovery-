@@ -12,7 +12,7 @@ export function ScrollProgress() {
 
   return (
     <motion.div
-      className="fixed left-0 right-0 top-0 z-[60] h-0.5 origin-left bg-gradient-to-r from-careflow-teal via-careflow-sky to-careflow-teal-light"
+      className="fixed left-0 right-0 top-0 z-[60] h-0.5 origin-left bg-gradient-to-r from-iar-teal via-iar-sky to-iar-teal-light"
       style={{ scaleX }}
     />
   );

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 
 const availabilityOptions = [
   "Weekday mornings",
@@ -19,8 +19,8 @@ const availabilityOptions = [
 
 export default function AppointmentRequestPage() {
   const router = useRouter();
-  const submitRequest = useCareFlowStore((s) => s.submitAppointmentRequest);
-  const isProcessing = useCareFlowStore((s) => s.isProcessing);
+  const submitRequest = useIARStore((s) => s.submitAppointmentRequest);
+  const isProcessing = useIARStore((s) => s.isProcessing);
 
   const [symptoms, setSymptoms] = useState("");
   const [urgencyNotes, setUrgencyNotes] = useState("");
@@ -93,7 +93,7 @@ export default function AppointmentRequestPage() {
                     onClick={() => toggleAvailability(option)}
                     className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                       selectedAvailability.includes(option)
-                        ? "border-careflow-teal bg-careflow-teal/10 text-careflow-teal"
+                        ? "border-iar-teal bg-iar-teal/10 text-iar-teal"
                         : "border-border hover:bg-muted"
                     }`}
                   >

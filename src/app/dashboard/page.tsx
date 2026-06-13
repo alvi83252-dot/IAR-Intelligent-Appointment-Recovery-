@@ -9,18 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/metrics/stat-card";
 import { PriorityBadge } from "@/components/priority/priority-badge";
 import { ActivityTimeline } from "@/components/timeline/activity-timeline";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { DEMO_PATIENT } from "@/services/mock-data";
 import { formatDateTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 
 export default function PatientDashboard() {
-  const appointments = useCareFlowStore((s) => s.appointments);
-  const notifications = useCareFlowStore((s) => s.notifications);
-  const timeline = useCareFlowStore((s) => s.timeline);
-  const capacityMetrics = useCareFlowStore((s) => s.capacityMetrics);
-  const markRead = useCareFlowStore((s) => s.markNotificationRead);
+  const appointments = useIARStore((s) => s.appointments);
+  const notifications = useIARStore((s) => s.notifications);
+  const timeline = useIARStore((s) => s.timeline);
+  const capacityMetrics = useIARStore((s) => s.capacityMetrics);
+  const markRead = useIARStore((s) => s.markNotificationRead);
 
   const upcoming = appointments
     .filter((a) => a.status !== "cancelled" && new Date(a.dateTime) > new Date())
@@ -81,7 +81,7 @@ export default function PatientDashboard() {
               {upcoming.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   No upcoming appointments.{" "}
-                  <Link href="/request" className="text-careflow-teal hover:underline">
+                  <Link href="/request" className="text-iar-teal hover:underline">
                     Request one
                   </Link>
                 </p>
@@ -111,7 +111,7 @@ export default function PatientDashboard() {
             <CardContent className="grid gap-3 sm:grid-cols-2">
               {[
                 { href: "/swap", label: "Review Swap Proposal", desc: "Urgent slot exchange pending" },
-                { href: "/practice", label: "PAS Ledger", desc: "System C CareFlow writes" },
+                { href: "/practice", label: "PAS Ledger", desc: "System C IAR writes" },
                 { href: "/disruption", label: "Disruption Status", desc: "GP partner absence recovery" },
                 { href: "/agents", label: "Agent Activity", desc: "View live coordination" },
                 { href: "/demo", label: "Run Demo Scenario", desc: "Experience full workflow" },
@@ -119,9 +119,9 @@ export default function PatientDashboard() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="group rounded-xl border border-border/50 p-4 transition-colors hover:border-careflow-teal/50 hover:bg-careflow-teal/5"
+                  className="group rounded-xl border border-border/50 p-4 transition-colors hover:border-iar-teal/50 hover:bg-iar-teal/5"
                 >
-                  <p className="font-medium group-hover:text-careflow-teal">{action.label}</p>
+                  <p className="font-medium group-hover:text-iar-teal">{action.label}</p>
                   <p className="text-xs text-muted-foreground">{action.desc}</p>
                 </Link>
               ))}
@@ -144,7 +144,7 @@ export default function PatientDashboard() {
                   onClick={() => markRead(n.id)}
                   className={cn(
                     "w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted/50",
-                    !n.read && "border-careflow-teal/30 bg-careflow-teal/5"
+                    !n.read && "border-iar-teal/30 bg-iar-teal/5"
                   )}
                 >
                   <div className="flex items-center gap-2">

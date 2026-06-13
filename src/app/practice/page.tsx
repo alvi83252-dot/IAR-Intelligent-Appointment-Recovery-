@@ -5,20 +5,20 @@ import { Database, FileText, Layers } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { APP_NAME, PAS_LEDGER_DESCRIPTION, PAS_LEDGER_NAME } from "@/lib/config";
 import { formatDateTime } from "@/lib/utils";
 
 export default function PasLedgerPage() {
-  const pasSnapshot = useCareFlowStore((s) => s.pasSnapshot);
-  const pasWriteLog = useCareFlowStore((s) => s.pasWriteLog);
+  const pasSnapshot = useIARStore((s) => s.pasSnapshot);
+  const pasWriteLog = useIARStore((s) => s.pasWriteLog);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
       <ScrollReveal>
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-careflow-teal/10">
-            <Layers className="h-6 w-6 text-careflow-teal" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-iar-teal/10">
+            <Layers className="h-6 w-6 text-iar-teal" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">PAS Ledger Integration</h1>
@@ -30,9 +30,9 @@ export default function PasLedgerPage() {
       </ScrollReveal>
 
       <ScrollReveal delay={0.1} className="mt-6">
-        <Card className="border-careflow-teal/20 bg-gradient-to-br from-careflow-teal/5 to-transparent">
+        <Card className="border-iar-teal/20 bg-gradient-to-br from-iar-teal/5 to-transparent">
           <CardContent className="flex items-start gap-4 p-6">
-            <Database className="mt-0.5 h-5 w-5 shrink-0 text-careflow-teal" />
+            <Database className="mt-0.5 h-5 w-5 shrink-0 text-iar-teal" />
             <div>
               <p className="font-medium">
                 {APP_NAME} is an orchestration layer — {PAS_LEDGER_NAME} is the ledger

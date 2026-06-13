@@ -256,7 +256,7 @@ export async function detectCalendarConflict(
     timestamp: new Date().toISOString(),
     type: "calendar",
     title: "PAS Ledger Rescheduled",
-    description: "Front Desk Agent updated slot in System C CareFlow automatically.",
+    description: "Front Desk Agent updated slot in System C IAR automatically.",
     agentId: "front-desk",
   });
 

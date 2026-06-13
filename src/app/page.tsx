@@ -40,19 +40,19 @@ export default function LandingPage() {
       <motion.div
         animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-        className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-careflow-teal/10 blur-3xl"
+        className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-iar-teal/10 blur-3xl"
       />
       <motion.div
         animate={{ y: [0, 15, 0], x: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
-        className="pointer-events-none absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-careflow-sky/10 blur-3xl"
+        className="pointer-events-none absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-iar-sky/10 blur-3xl"
       />
 
       <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
           <motion.div
             whileHover={{ rotate: 10, scale: 1.05 }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-careflow-teal to-careflow-teal-light"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-iar-teal to-iar-teal-light"
           >
             <Activity className="h-5 w-5 text-white" />
           </motion.div>
@@ -71,7 +71,7 @@ export default function LandingPage() {
           transition={{ duration: 0.6 }}
           className="mx-auto max-w-4xl text-center"
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-careflow-teal/30 bg-careflow-teal/10 px-4 py-1.5 text-sm text-careflow-teal">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-iar-teal/30 bg-iar-teal/10 px-4 py-1.5 text-sm text-iar-teal">
             <Sparkles className="h-4 w-4" />
             GP-side · Patient-facing · Agent-orchestrated
           </div>
@@ -108,7 +108,7 @@ export default function LandingPage() {
         <ScrollReveal className="mt-24" delay={0.1}>
           <div className="rounded-2xl border border-border/60 bg-card/50 p-6 backdrop-blur-sm sm:p-8">
             <div className="flex items-start gap-4">
-              <Database className="h-6 w-6 shrink-0 text-careflow-teal" />
+              <Database className="h-6 w-6 shrink-0 text-iar-teal" />
               <div>
                 <h2 className="text-lg font-semibold">Complement, not copy</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -131,13 +131,13 @@ export default function LandingPage() {
           <StaggerReveal className="grid gap-6 md:grid-cols-3">
             {AGENT_CARDS.map((agent) => (
               <StaggerItem key={agent.id}>
-                <Card className="h-full border-careflow-teal/20 bg-gradient-to-b from-card to-careflow-teal/5 transition-shadow hover:shadow-lg hover:shadow-careflow-teal/5">
+                <Card className="h-full border-iar-teal/20 bg-gradient-to-b from-card to-iar-teal/5 transition-shadow hover:shadow-lg hover:shadow-iar-teal/5">
                   <CardContent className="p-6">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-careflow-teal/10">
-                      <Bot className="h-6 w-6 text-careflow-teal" />
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-iar-teal/10">
+                      <Bot className="h-6 w-6 text-iar-teal" />
                     </div>
                     <h3 className="text-lg font-semibold">{agent.name}</h3>
-                    <p className="text-sm text-careflow-teal">{agent.role}</p>
+                    <p className="text-sm text-iar-teal">{agent.role}</p>
                     <p className="mt-3 text-sm text-muted-foreground">{agent.description}</p>
                   </CardContent>
                 </Card>
@@ -163,7 +163,7 @@ export default function LandingPage() {
                     "GP partner absence disruption cascade",
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 shrink-0 text-careflow-teal" />
+                      <Calendar className="h-4 w-4 shrink-0 text-iar-teal" />
                       {item}
                     </li>
                   ))}
@@ -172,13 +172,13 @@ export default function LandingPage() {
                   <Link href="/demo">Open Demo Control Center</Link>
                 </Button>
               </div>
-              <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-careflow-teal/20 to-careflow-sky/10">
+              <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-iar-teal/20 to-iar-sky/10">
                 <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ repeat: Infinity, duration: 3 }}
                   className="text-center"
                 >
-                  <Activity className="mx-auto h-16 w-16 text-careflow-teal" />
+                  <Activity className="mx-auto h-16 w-16 text-iar-teal" />
                   <p className="mt-4 text-sm font-medium">Live Agent Coordination</p>
                   <p className="text-xs text-muted-foreground">A2A · {PAS_LEDGER_NAME} Adapter</p>
                 </motion.div>

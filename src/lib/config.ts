@@ -4,8 +4,8 @@ export const isDemoMode =
   true;
 
 export const APP_NAME = "IAR";
-export const APP_FULL_NAME = "Intelligent Appointment Routing";
+export const APP_FULL_NAME = "Intelligent Appointment Recovery";
 export const APP_TAGLINE = "AI Agents That Keep Healthcare Moving.";
-export const PAS_LEDGER_NAME = "System C CareFlow";
+export const PAS_LEDGER_NAME = "System C IAR";
 export const PAS_LEDGER_DESCRIPTION =
   "NHS PAS/EPR ledger — the record system IAR agents read and write. Not replaced; complemented.";
