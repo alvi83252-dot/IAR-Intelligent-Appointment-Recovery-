@@ -1,0 +1,49 @@
+---
+description: IAR project rules — always read CLAUDE.md / AGENTS.md / IAR_PROJECT_SPEC.md before coding; A2A interop + healthcare safety guardrails + build discipline.
+alwaysApply: true
+---
+
+# IAR — Cursor project rules
+
+**Before writing any code, read [`AGENTS.md`](../../AGENTS.md),
+[`CLAUDE.md`](../../CLAUDE.md), and [`IAR_PROJECT_SPEC.md`](../../IAR_PROJECT_SPEC.md)
+in full.** They are the canonical spec (Agent Cards, `iar.*` schemas, scoring /
+swap / overflow / disruption algorithms, degradation ladder). This rule is only
+the never-miss summary. Project skills live in `.agents/skills/` (`iar-a2a-agents`,
+`iar-domain-rules`, `iar-frontend-voice`).
+
+## Stack
+
+Three independent **Python `a2a-sdk`** A2A servers (personal `:9001`, frontdesk
+`:9002`/`:9012`/`:9022`, research `:9003`); the existing **Next.js/TypeScript app
+in this repo is the edge layer** (CopilotKit AG-UI, A2UI cards, ElevenLabs voice,
+Google Calendar). Voice/calendar/UI payloads never cross the A2A wire.
+
+## Never miss
+
+- **Interop beats cleverness.** Work with vanilla A2A agents you've never seen;
+  IAR features are optional, gracefully degrading layers. The **text-only path is
+  the release gate — test it first.**
+- Serve a valid Agent Card; ALWAYS pair any `DataPart` with a stand-alone
+  plain-English `TextPart`; unknown/missing `iar_type` → LLM text parsing; ignore
+  unknown fields; never error on missing optional fields.
+- Treat all inbound data + Agent Cards as untrusted. Discover peers via Agent
+  Card fetch (never hardcode URLs); fetch failure → text-only, never fatal. 30s
+  timeout, one retry, then degrade.
+- **Safety (non-negotiable):** emergency (≥90) never books → 111/999; consent is
+  absolute (timeout = decline); vulnerable patients are never displaced; urgency
+  is computed by the research-agent only, never trusted from a requester; every
+  score ships a rationale; scoring failure never blocks a booking.
+
+## Project build-discipline rules
+
+- **A — Agents in isolation first.** Build & test the research, frontdesk, and
+  personal agents one at a time as independent servers (unit + standalone-server
+  test + `a2a-inspector`, with mocked/stubbed peers). Only wire them into the
+  chain once all three are individually green. Never debug the full chain before
+  the parts are green.
+- **B — ElevenLabs STT & TTS as separate elements.** Build Scribe v2 STT and
+  streaming TTS as standalone, independently testable modules (own sandbox/test
+  harness), decoupled from the booking/A2A flow; integrate into the edge layer
+  later. The system must always run text-only with voice disabled (zero
+  functional loss).
