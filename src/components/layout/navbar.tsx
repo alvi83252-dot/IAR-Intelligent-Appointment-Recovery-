@@ -24,7 +24,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isLanding = pathname === "/";
+  const isLanding = pathname === "/" || pathname === "/start";
 
   if (isLanding) return null;
 
