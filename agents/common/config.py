@@ -42,10 +42,6 @@ AGENT_MODELS: dict[str, str] = {
     "research": os.getenv("RESEARCH_AGENT_MODEL", DEFAULT_LLM_MODEL),
 }
 
-# Optional cheaper/faster model for the disruption batch re-score (~14 bookings at
-# once) to protect the demo timeline; defaults to the research agent's model.
-RESEARCH_BATCH_MODEL: str = os.getenv("RESEARCH_BATCH_MODEL", AGENT_MODELS["research"])
-
 # A2A service URLs (consumed once the agent servers exist; no hardcoded peers).
 AGENT_URLS: dict[str, str] = {
     "personal": os.getenv("PERSONAL_AGENT_URL", "http://localhost:9001/"),

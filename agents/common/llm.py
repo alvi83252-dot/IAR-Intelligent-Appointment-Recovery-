@@ -96,8 +96,8 @@ def get_llm(agent: str) -> LLMClient:
 def _smoke() -> int:
     """Check every configured model is responsive, in isolation.
 
-    Covers each agent's model (personal / frontdesk / research) plus the optional
-    disruption batch model, de-duplicated, reporting which roles use each model.
+    Covers each agent's model (personal / frontdesk / research), de-duplicated,
+    reporting which roles use each model.
     Continues through all models so one failure doesn't hide the rest.
     """
     print(f"provider={config.LLM_PROVIDER}  default_model={config.DEFAULT_LLM_MODEL}")
@@ -106,7 +106,6 @@ def _smoke() -> int:
     roles: dict[str, list[str]] = {}
     for agent in ("personal", "frontdesk", "research"):
         roles.setdefault(config.model_for(agent), []).append(agent)
-    roles.setdefault(config.RESEARCH_BATCH_MODEL, []).append("research-batch")
 
     failures = 0
     for model, used_by in roles.items():
