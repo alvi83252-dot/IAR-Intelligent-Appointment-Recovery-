@@ -29,8 +29,23 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
+.env
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python (IAR agents)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# IAR agent runtime artifacts
+*.db
+*.sqlite3
+agents/**/*.db
+

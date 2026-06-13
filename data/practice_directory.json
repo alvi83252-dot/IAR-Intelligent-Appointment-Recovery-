@@ -1,0 +1,20 @@
+[
+  {
+    "practice_id": "hillingdon-road",
+    "name": "Hillingdon Road Surgery",
+    "postcode_district": "UB8",
+    "frontdesk_agent_url": "http://localhost:9002/"
+  },
+  {
+    "practice_id": "uxbridge-health",
+    "name": "Uxbridge Health Centre",
+    "postcode_district": "UB8",
+    "frontdesk_agent_url": "http://localhost:9012/"
+  },
+  {
+    "practice_id": "yiewsley-medical",
+    "name": "Yiewsley Medical Centre",
+    "postcode_district": "UB7",
+    "frontdesk_agent_url": "http://localhost:9022/"
+  }
+]

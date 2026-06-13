@@ -1,0 +1,23 @@
+{
+  "_comment": "ledger.py expands this into concrete dated slots for the next `days_ahead` working days, relative to today, at first init. The last `reserved_fraction` of each clinician-day's slots are reserved for urgent/emergency bands (locked-slot policy).",
+  "clinicians": [
+    {
+      "name": "Dr Osei",
+      "location": "Hillingdon Road Surgery"
+    },
+    {
+      "name": "Dr Patel",
+      "location": "Hillingdon Road Surgery"
+    },
+    {
+      "name": "Dr Nguyen",
+      "location": "Hillingdon Road Surgery"
+    }
+  ],
+  "day_start": "09:00",
+  "day_end": "12:00",
+  "slot_minutes": 20,
+  "days_ahead": 5,
+  "include_weekends": false,
+  "reserved_fraction": 0.2
+}
