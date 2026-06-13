@@ -1,0 +1,5 @@
+{
+  "id": "doc_pas_ledger_001",
+  "title": "System C CareFlow PAS ledger integration",
+  "content": "## PAS ledger role\n\nIAR complements the PAS/EPR record system — it does not replace it. The front desk agent reads and writes:\n- Slot availability search\n- Booking confirmation with reference\n- Cancellation and rebooking\n- Waitlist positions\n\n## Demo mode\nWhen DEMO_MODE=true, all ledger operations use local mock data. No live NHS systems are called.\n\n## Booking confirmation fields\nbooking_ref, slot_ref, patient_ref, status (confirmed/cancelled/rebooked), start/end ISO 8601 Europe/London, clinician, location, calendar_hint for patient calendar write."
+}

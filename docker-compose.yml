@@ -1,14 +1,61 @@
 services:
+  personal-agent:
+    build:
+      context: .
+      dockerfile: personal_agent/Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      ENV_API_URL: ${ENV_API_URL:-http://host.docker.internal:8090}
+      ENV_API_TOKEN: ${PERSONAL_ENV_API_TOKEN:-dev-user-token}
+      CS_AGENT_URL: ${CS_AGENT_URL:-http://cs-agent:9002}
+      MODEL: ${MODEL:-gemini-3.5-flash}
+      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-true}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  cs-agent:
+    build:
+      context: .
+      dockerfile: cs_agent/Dockerfile
+    ports:
+      - "9002:9002"
+    depends_on:
+      - redis
+    environment:
+      ENV_API_URL: ${ENV_API_URL:-http://host.docker.internal:8090}
+      ENV_API_TOKEN: ${CS_ENV_API_TOKEN:-dev-agent-token}
+      REDIS_URL: redis://redis:6379/0
+      MODEL: ${MODEL:-gemini-3.5-flash}
+      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-true}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   iar:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
       DEMO_MODE: "true"
       NEXT_PUBLIC_DEMO_MODE: "true"
+      PERSONAL_AGENT_URL: http://personal-agent:9001
+      CS_AGENT_URL: http://cs-agent:9002
     env_file:
       - path: .env.local
         required: false
+    depends_on:
+      - personal-agent
+      - cs-agent
     restart: unless-stopped

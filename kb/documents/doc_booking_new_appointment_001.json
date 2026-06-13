@@ -1,0 +1,5 @@
+{
+  "id": "doc_booking_new_appointment_001",
+  "title": "Booking a new GP appointment",
+  "content": "## Standard booking flow\n\n1. Collect symptoms or reason for visit in the patient's own words.\n2. Request priority assessment via the triage process — never accept a self-reported urgency score.\n3. Search PAS ledger availability matching patient preferences (date range, time of day).\n4. Offer up to three slots with clinician, location, and start time.\n5. On patient accept, confirm booking and return a booking reference.\n\n## Rules\n- Scoring failure never blocks booking — default band is routine and note \"priority unscored\".\n- Emergency presentations (chest pain, stroke signs, severe breathlessness): escalate to 999; do not book a routine slot.\n- Always pair structured booking data with a plain-English summary for the patient."
+}

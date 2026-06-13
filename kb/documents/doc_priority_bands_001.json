@@ -1,0 +1,5 @@
+{
+  "id": "doc_priority_bands_001",
+  "title": "Clinical priority bands and escalation",
+  "content": "## Priority bands (0–100 score)\n\n| Band | Score | Action |\n| --- | --- | --- |\n| Emergency | ≥ 90 | Escalate to 111/999 — **never book** |\n| Urgent | ≥ 70 | Same/next-day slot; reserved pool eligible |\n| Soon | ≥ 50 | Within 1–2 weeks |\n| Routine | ≥ 25 | Standard wait |\n| Admin | < 25 | Telephone/eConsult where possible |\n\n## Components\nScore = 100 × (0.50×clinical_urgency + 0.20×wait_time + 0.15×vulnerability + 0.15×access_burden).\n\nEvery assessment must include a one-line plain-English rationale. Red-flag symptoms map to clinical_urgency 1.0."
+}

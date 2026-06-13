@@ -1,0 +1,5 @@
+{
+  "id": "doc_swap_protocol_001",
+  "title": "Consensual urgent slot swap protocol",
+  "content": "## When to initiate a swap\n\nTriggered when an urgent patient cannot be placed within the safe wait window and no reserved slot is available.\n\n## Steps\n1. Rank displacement candidates via research agent — **vulnerable patients are never eligible**.\n2. Propose swap to up to **3** candidates' personal agents.\n3. Wait for explicit **accept** — timeout counts as decline (demo: 60s; production: 2h).\n4. On accept: atomic swap both bookings and confirm both parties.\n5. If all decline: try overflow to sibling practice, then regular ladder.\n\n## Consent is absolute\nA swap NEVER happens without explicit patient accept. Calendar conflicts may auto-decline before bothering the patient."
+}

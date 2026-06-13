@@ -1,0 +1,5 @@
+{
+  "id": "doc_disruption_cascade_001",
+  "title": "Clinician absence disruption recovery",
+  "content": "## Disruption cascade (strict order)\n\n1. **FREEZE** affected slots; collect impacted bookings.\n2. **RE-SCORE** all affected bookings via research agent (preserve last known band if research unavailable).\n3. **ALLOCATE** remaining same-week capacity by descending priority:\n   - Emergency: escalate, never rebook.\n   - Urgent: same/next-day → swap → overflow.\n   - Soon/routine: best available (reserved pool excluded).\n   - Admin: telephone/eConsult offer.\n4. **NOTIFY** every affected patient with replacement offers and apology priority boost.\n5. **RECONCILE** as accepts/declines stream back.\n\nCascade must be idempotent — key actions by disruption_ref + booking_ref. No patient left without an offer, waitlist position, or escalation."
+}

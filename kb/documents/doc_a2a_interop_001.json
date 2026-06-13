@@ -1,0 +1,5 @@
+{
+  "id": "doc_a2a_interop_001",
+  "title": "A2A interoperability and degradation",
+  "content": "## Interop rules\n\n- Every message includes a plain-English TextPart alongside any structured data.\n- Unknown agents: fall back to text-only conversation; never error on missing optional fields.\n- Agent card fetch failure: treat peer as text-only; discovery is never fatal.\n- 30s timeout per downstream A2A call, one retry, then degrade.\n\n## Degradation ladder\n| Failure | Behaviour |\n| Research agent down | Default band routine, proceed |\n| Peer ignores DataParts | Plain-text negotiation |\n| Calendar API down | Skip conflict check, attach .ics |\n| Sibling practice down | Skip to next sibling |\n\nText-only path is the release gate — must always work."
+}

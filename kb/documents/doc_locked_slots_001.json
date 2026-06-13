@@ -1,0 +1,5 @@
+{
+  "id": "doc_locked_slots_001",
+  "title": "Reserved urgent capacity (locked slots)",
+  "content": "## Locked-slot policy\n\n- Rolling 2-day window: the **last 20%** of slots per day are marked `reserved`.\n- Reserved slots are offered only to **urgent** band patients (emergency escalates, never books).\n- **Decay rule:** at T-24h before slot start, unconsumed reserved slots unlock to the routine waitlist (highest score first).\n- If no priority assessment is available, default to routine and serve from the unreserved pool only.\n- Never block a booking because scoring failed."
+}

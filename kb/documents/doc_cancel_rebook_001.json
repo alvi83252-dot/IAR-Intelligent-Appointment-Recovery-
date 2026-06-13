@@ -1,0 +1,5 @@
+{
+  "id": "doc_cancel_rebook_001",
+  "title": "Cancellation and rebooking appointments",
+  "content": "## Cancellation\n\n1. Verify patient identity.\n2. Locate booking in PAS ledger by reference or patient ID.\n3. Cancel atomically; slot returns to availability pool.\n4. Notify patient with confirmation reference.\n\n## Rebooking\n\n1. Cancel existing booking (or atomic rebook if tool available).\n2. Re-run availability search with updated preferences.\n3. Priority may be re-assessed if symptoms changed.\n4. Calendar conflict check on patient's side before confirming.\n\nLate cancellations (< 24h) may trigger waitlist backfill for the freed slot."
+}

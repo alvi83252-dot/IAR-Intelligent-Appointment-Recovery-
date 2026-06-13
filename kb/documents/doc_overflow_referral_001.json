@@ -1,0 +1,5 @@
+{
+  "id": "doc_overflow_referral_001",
+  "title": "Overflow referral to sibling GP practice",
+  "content": "## When to use overflow\n\nOnly for **urgent** cases after swap protocol is exhausted.\n\n## Steps\n1. Read practice directory; pick up to 2 sibling practices by postcode distance.\n2. Discover each sibling's front desk agent card (never hardcode URLs).\n3. Send standard booking request with optional `referral` extension (origin practice, priority assessment).\n4. Sibling may re-score or trust same-directory peer assessment.\n5. Relay offer back to patient through **origin** practice — patient keeps one point of contact.\n6. Sequential attempts, 30s timeout each; skip downed siblings.\n\nForeign agents that ignore structured data still see a valid plain-text booking request."
+}
