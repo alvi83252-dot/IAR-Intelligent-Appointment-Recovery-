@@ -51,18 +51,19 @@ interface IARState {
   lastNotificationResults: Array<{
     channel: string;
     success: boolean;
-    demo: boolean;
-    fallback?: boolean;
+    demo?: boolean;
     message: string;
     detail?: string;
+    actionUrl?: string;
   }> | null;
   lastCalendarResult: {
     success: boolean;
-    demo: boolean;
-    fallback?: boolean;
     provider: string;
     message: string;
-    calendlyUrl?: string;
+    eventUrl?: string;
+    meetupBookingUrl?: string;
+    calendarUrl?: string;
+    detail?: string;
   } | null;
   capacityMetrics: typeof CAPACITY_METRICS;
   pasSnapshot: PasLedgerSnapshot;

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useIARStore } from "@/hooks/use-iar-store";
 import { speakText, transcribeAudio } from "@/lib/voice/client";
-import { CALENDLY_BOOKING_URL } from "@/lib/config";
+import { GOOGLE_MEETUP_BOOKING_URL } from "@/lib/config";
 import { DEMO_PATIENT } from "@/services/mock-data";
 
 export default function IntegrationTestPage() {
@@ -106,9 +106,12 @@ export default function IntegrationTestPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Integration test hub</h1>
         <p className="mt-2 text-muted-foreground">
-          Test ElevenLabs, calendar push, SMS, and Gmail before going through the full booking flow.
+          Test ElevenLabs, Google Calendar, SMS, and Gmail before going through the full booking flow.
         </p>
-        <Button variant="outline" className="mt-4" asChild>
+        <Button variant="premium" className="mt-4" asChild>
+          <Link href="/setup">Configure Twilio &amp; Google</Link>
+        </Button>
+        <Button variant="outline" className="mt-4 ml-2" asChild>
           <Link href="/">Back to chat</Link>
         </Button>
       </div>
@@ -154,7 +157,9 @@ export default function IntegrationTestPage() {
               <MessageSquare className="h-5 w-5 text-iar-teal" /> SMS & Gmail
             </CardTitle>
             <CardDescription>
-              Without Twilio/Gmail credentials, demo mode logs the message content in the response.
+              Uses built-in SMS and email confirmations by default (shown on this page and your dashboard).
+              Set <code className="text-xs">NOTIFICATIONS_MODE=live</code> in <code className="text-xs">.env.local</code>{" "}
+              to send via Twilio/Gmail instead.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -176,27 +181,26 @@ export default function IntegrationTestPage() {
               <Calendar className="h-5 w-5 text-iar-teal" /> Calendar
             </CardTitle>
             <CardDescription>
-              Without Google Calendar OAuth, bookings use your Calendly link (
+              Creates a Google Calendar event when OAuth is connected. Meetups use your Google
+              Calendar booking page (
               <a
-                href={CALENDLY_BOOKING_URL}
+                href={GOOGLE_MEETUP_BOOKING_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-iar-teal underline-offset-2 hover:underline"
               >
-                calendly.com/alvifaizan695/new-meeting
+                calendar.app.google/PAm4y6BTimvayDrK9
               </a>
-              ) or a downloadable .ics file.
+              ). A downloadable .ics file is also available.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {CALENDLY_BOOKING_URL && (
-              <Button variant="outline" asChild>
-                <a href={CALENDLY_BOOKING_URL} target="_blank" rel="noopener noreferrer">
-                  Open Calendly test link
-                </a>
-              </Button>
-            )}
-            <Button onClick={() => void testCalendar()}>Push sample appointment to calendar</Button>
+            <Button variant="outline" asChild>
+              <a href={GOOGLE_MEETUP_BOOKING_URL} target="_blank" rel="noopener noreferrer">
+                Open meetup booking page
+              </a>
+            </Button>
+            <Button onClick={() => void testCalendar()}>Push sample appointment to Google Calendar</Button>
             {calendarStatus && (
               <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">{calendarStatus}</pre>
             )}

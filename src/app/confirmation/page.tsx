@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VoiceOptionsPanel } from "@/components/access/voice-options-panel";
 import { PriorityBadge } from "@/components/priority/priority-badge";
 import { useIARStore } from "@/hooks/use-iar-store";
-import { CALENDLY_BOOKING_URL } from "@/lib/config";
+import { GOOGLE_MEETUP_BOOKING_URL } from "@/lib/config";
 import { downloadICS, generateFullCalendarPackage } from "@/lib/calendar";
 import { formatDate, formatTime } from "@/lib/utils";
 
@@ -21,43 +21,67 @@ export default function BookingConfirmationPage() {
   const calendarResult = useIARStore((s) => s.lastCalendarResult);
 
   const [sending, setSending] = useState(false);
+  const [gmailReady, setGmailReady] = useState<boolean | null>(null);
   const sentRef = useRef(false);
 
   const appointment = lastBooked ?? appointments[0];
 
+  const deliverConfirmations = async () => {
+    if (!appointment || !patientContact) return;
+    setSending(true);
+    try {
+      const [notifyRes, calendarRes] = await Promise.all([
+        fetch("/api/notifications/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contact: patientContact, appointment }),
+        }),
+        fetch("/api/calendar/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ appointment, email: patientContact.email }),
+        }),
+      ]);
+
+      const notifyData = await notifyRes.json();
+      const calendarData = await calendarRes.json();
+
+      useIARStore.setState((state) => {
+        const results = notifyData.results ?? null;
+        const extraNotifications =
+          results?.map((result: { channel: string; message: string; demo?: boolean }) => ({
+            id: `notif_${result.channel}_${Date.now()}`,
+            title: result.channel === "sms" ? "SMS confirmation" : "Email confirmation",
+            message: result.message,
+            type: "info" as const,
+            read: false,
+            createdAt: new Date().toISOString(),
+          })) ?? [];
+
+        return {
+          lastNotificationResults: results,
+          lastCalendarResult: calendarData ?? null,
+          notifications: extraNotifications.length
+            ? [...extraNotifications, ...state.notifications]
+            : state.notifications,
+        };
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetch("/api/integrations/google/settings")
+      .then((r) => r.json())
+      .then((d: { gmailConfigured?: boolean }) => setGmailReady(!!d.gmailConfigured))
+      .catch(() => setGmailReady(false));
+  }, []);
+
   useEffect(() => {
     if (!appointment || !patientContact || sentRef.current) return;
     sentRef.current = true;
-
-    const deliver = async () => {
-      setSending(true);
-      try {
-        const [notifyRes, calendarRes] = await Promise.all([
-          fetch("/api/notifications/confirm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contact: patientContact, appointment }),
-          }),
-          fetch("/api/calendar/push", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ appointment, email: patientContact.email }),
-          }),
-        ]);
-
-        const notifyData = await notifyRes.json();
-        const calendarData = await calendarRes.json();
-
-        useIARStore.setState({
-          lastNotificationResults: notifyData.results ?? null,
-          lastCalendarResult: calendarData ?? null,
-        });
-      } finally {
-        setSending(false);
-      }
-    };
-
-    void deliver();
+    void deliverConfirmations();
   }, [appointment, patientContact]);
 
   if (!appointment) {
@@ -76,7 +100,11 @@ export default function BookingConfirmationPage() {
     downloadICS(ics, `iar-appointment-${appointment.id}.ics`);
   };
 
-  const calendlyUrl = CALENDLY_BOOKING_URL;
+  const meetupUrl =
+    calendarResult?.meetupBookingUrl ??
+    calendarResult?.eventUrl ??
+    calendarResult?.calendarUrl ??
+    GOOGLE_MEETUP_BOOKING_URL;
 
   const nextOptions = [
     {
@@ -86,10 +114,10 @@ export default function BookingConfirmationPage() {
       onSelect: handleDownloadCalendar,
     },
     {
-      id: "calendly",
-      label: "Schedule on Calendly",
-      description: "Add or manage this appointment via your Calendly page.",
-      href: calendlyUrl,
+      id: "google-meetup",
+      label: "Book meetup on Google Calendar",
+      description: "Open your Google Calendar appointment page to schedule or manage the meetup.",
+      href: meetupUrl,
     },
     {
       id: "timeline",
@@ -154,57 +182,41 @@ export default function BookingConfirmationPage() {
                 <strong>{patientContact.email}</strong> (email)
               </p>
             )}
-            {notificationResults?.map((result) => (
-              <div key={result.channel} className="flex items-start gap-2">
-                {result.channel === "sms" ? (
-                  <MessageSquare className="mt-0.5 h-4 w-4 shrink-0" />
-                ) : (
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
-                )}
-                <div>
-                  <p>
-                    {result.message}
-                    {(result.demo || result.fallback) && (
-                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">
-                        {result.fallback ? "fallback" : "demo"}
-                      </span>
-                    )}
-                  </p>
-                  {result.demo && result.detail && (
-                    <p className="mt-1 text-xs text-muted-foreground">{result.detail.slice(0, 160)}…</p>
-                  )}
-                </div>
+            {gmailReady === false && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+                <p className="font-medium text-amber-900 dark:text-amber-200">
+                  Gmail is not connected yet — emails won&apos;t arrive in your inbox automatically.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Client ID &amp; Secret alone cannot send email. Sign in once with Google:
+                </p>
+                <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <a href="/api/integrations/google/auth">Connect Google account</a>
+                </Button>
               </div>
-            ))}
+            )}
             {calendarResult && (
               <div className="space-y-2">
-                <p className="flex items-start gap-2">
+                <p className={`flex items-start gap-2 ${calendarResult.success ? undefined : "text-destructive"}`}>
                   <Calendar className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
-                    {calendarResult.provider === "google_calendar"
-                      ? calendarResult.message
-                      : "Google Calendar is not connected — use Calendly instead."}
-                    {(calendarResult.demo || calendarResult.fallback) &&
-                      calendarResult.provider === "google_calendar" && (
-                        <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">
-                          {calendarResult.fallback ? "fallback" : "demo"}
-                        </span>
-                      )}
+                    {calendarResult.message}
+                    {!calendarResult.success && (
+                      <span className="ml-2 rounded bg-destructive/10 px-1.5 py-0.5 text-xs text-destructive">
+                        failed
+                      </span>
+                    )}
                   </span>
                 </p>
-                {calendarResult.provider !== "google_calendar" &&
-                  (calendarResult.calendlyUrl ?? CALENDLY_BOOKING_URL) && (
-                    <Button variant="premium" size="sm" asChild className="w-full sm:w-auto">
-                      <a
-                        href={calendarResult.calendlyUrl ?? CALENDLY_BOOKING_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Calendar className="h-4 w-4" />
-                        Open Calendly booking
-                      </a>
-                    </Button>
-                  )}
+                {calendarResult.detail && (
+                  <p className="text-xs text-muted-foreground">{calendarResult.detail.slice(0, 240)}</p>
+                )}
+                <Button variant="premium" size="sm" asChild className="w-full sm:w-auto">
+                  <a href={meetupUrl} target="_blank" rel="noopener noreferrer">
+                    <Calendar className="h-4 w-4" />
+                    Book meetup on Google Calendar
+                  </a>
+                </Button>
               </div>
             )}
           </CardContent>

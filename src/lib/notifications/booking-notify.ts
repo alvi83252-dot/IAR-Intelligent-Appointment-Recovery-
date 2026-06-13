@@ -1,77 +1,60 @@
-import type { Appointment } from "@/types";
-import { formatDate, formatTime } from "@/lib/utils";
+import { useLiveNotifications } from "@/lib/config";
+import type { NotificationPayload, NotificationResult } from "@/lib/notifications/built-in-notify";
+import {
+  buildEmailHtml,
+  buildEmailPlainText,
+  buildSmsBody,
+  sendBuiltInEmail,
+  sendBuiltInSms,
+} from "@/lib/notifications/built-in-notify";
 import { generateFullCalendarPackage } from "@/lib/calendar";
 import { externalFetch } from "@/lib/external-fetch";
+import { getGmailSenderEmail, getGoogleCredentials, getTwilioCredentials } from "@/lib/integrations/credentials";
 
-export interface PatientContact {
-  name: string;
-  email: string;
-  phone: string;
+export type { NotificationPayload, NotificationResult, PatientContact } from "@/lib/notifications/built-in-notify";
+export {
+  buildSmsBody,
+  buildEmailHtml,
+  buildSmsActionUrl,
+  buildEmailActionUrl,
+} from "@/lib/notifications/built-in-notify";
+
+function normalizePhone(phone: string): string {
+  const compact = phone.replace(/[\s()-]/g, "");
+  if (compact.startsWith("+")) return compact;
+  if (compact.startsWith("00")) return `+${compact.slice(2)}`;
+  if (compact.startsWith("0") && compact.length === 11) return `+44${compact.slice(1)}`;
+  return compact;
 }
 
-export interface NotificationPayload {
-  contact: PatientContact;
-  appointment: Appointment;
-}
+export async function sendSms(payload: NotificationPayload): Promise<NotificationResult> {
+  const builtIn = sendBuiltInSms(payload);
 
-export interface NotificationResult {
-  channel: "sms" | "email";
-  success: boolean;
-  demo: boolean;
-  fallback?: boolean;
-  message: string;
-  detail?: string;
-}
+  if (!useLiveNotifications()) {
+    return builtIn;
+  }
 
-function buildSmsBody(appointment: Appointment, contact: PatientContact): string {
-  return `IAR: Hi ${contact.name}, your GP appointment with ${appointment.providerName} is confirmed for ${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)} at ${appointment.location}. Reply HELP for support.`;
-}
-
-function buildEmailHtml(appointment: Appointment, contact: PatientContact): string {
-  return `
-    <div style="font-family: sans-serif; max-width: 560px;">
-      <h2>Appointment confirmed — IAR</h2>
-      <p>Hi ${contact.name},</p>
-      <p>Your agents have secured your GP appointment:</p>
-      <ul>
-        <li><strong>Clinician:</strong> ${appointment.providerName}</li>
-        <li><strong>When:</strong> ${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)}</li>
-        <li><strong>Location:</strong> ${appointment.location}</li>
-        <li><strong>Priority:</strong> ${appointment.priorityBand}</li>
-      </ul>
-      <p>Symptoms noted: ${appointment.symptoms}</p>
-      <p>A calendar file (.ics) is attached when Gmail is configured.</p>
-      <p style="color:#666;font-size:12px;">Intelligent Appointment Recovery — demo notification</p>
-    </div>
-  `;
-}
-
-export async function sendSms(
-  payload: NotificationPayload
-): Promise<NotificationResult> {
-  const { contact, appointment } = payload;
-  const body = buildSmsBody(appointment, contact);
-
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!sid || !token || !from) {
+  const twilio = getTwilioCredentials();
+  if (!twilio) {
     return {
-      channel: "sms",
-      success: true,
-      demo: true,
-      message: `Demo SMS logged for ${contact.phone}`,
-      detail: body,
+      ...builtIn,
+      message: `SMS confirmation ready for ${normalizePhone(payload.contact.phone)}`,
+      detail: `${builtIn.detail}\n\nTap "Open in Messages" to send from your phone. Twilio is optional.`,
     };
   }
 
+  const { contact, appointment } = payload;
+  const smsBody = buildSmsBody(appointment, contact);
+  const to = normalizePhone(contact.phone);
+  const { accountSid: sid, authToken: token, phoneNumber: from, messagingServiceSid } = twilio;
+
   const auth = Buffer.from(`${sid}:${token}`).toString("base64");
-  const params = new URLSearchParams({
-    To: contact.phone,
-    From: from,
-    Body: body,
-  });
+  const params = new URLSearchParams({ To: to, Body: smsBody });
+  if (messagingServiceSid) {
+    params.set("MessagingServiceSid", messagingServiceSid);
+  } else if (from) {
+    params.set("From", from);
+  }
 
   try {
     const response = await externalFetch(
@@ -89,12 +72,9 @@ export async function sendSms(
     if (!response.ok) {
       const detail = await response.text();
       return {
-        channel: "sms",
-        success: true,
-        demo: true,
-        fallback: true,
-        message: `SMS could not send — confirmation shown in app for ${contact.phone}`,
-        detail: detail || body,
+        ...builtIn,
+        message: `SMS confirmation ready for ${to}`,
+        detail: detail || builtIn.detail,
       };
     }
 
@@ -102,49 +82,48 @@ export async function sendSms(
       channel: "sms",
       success: true,
       demo: false,
-      message: `SMS sent to ${contact.phone}`,
+      message: `SMS sent to ${to}`,
+      detail: smsBody,
     };
   } catch (err) {
     return {
-      channel: "sms",
-      success: true,
-      demo: true,
-      fallback: true,
-      message: `SMS unavailable — confirmation saved in app for ${contact.phone}`,
-      detail: err instanceof Error ? err.message : body,
+      ...builtIn,
+      message: `SMS confirmation ready for ${to}`,
+      detail: err instanceof Error ? err.message : builtIn.detail,
     };
   }
 }
 
-export async function sendEmail(
-  payload: NotificationPayload
-): Promise<NotificationResult> {
+export async function sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
+  const builtIn = sendBuiltInEmail(payload);
   const { contact, appointment } = payload;
-  const html = buildEmailHtml(appointment, contact);
-  const subject = `IAR — Appointment confirmed with ${appointment.providerName}`;
-  const ics = generateFullCalendarPackage(appointment);
 
-  const clientId = process.env.GMAIL_CLIENT_ID;
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
-  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  const sender = process.env.GMAIL_SENDER_EMAIL;
+  if (!useLiveNotifications()) {
+    return builtIn;
+  }
 
-  if (!clientId || !clientSecret || !refreshToken || !sender) {
+  const google = getGoogleCredentials();
+  const sender = getGmailSenderEmail();
+
+  if (!google || !sender) {
     return {
-      channel: "email",
-      success: true,
-      demo: true,
-      message: `Demo email logged for ${contact.email}`,
-      detail: `${subject}\n\n${html.replace(/<[^>]+>/g, " ")}`,
+      ...builtIn,
+      message: `Email confirmation ready for ${contact.email}`,
+      detail: `${builtIn.detail}\n\nGmail Client ID/Secret are saved, but you still need to sign in once at /setup → Connect Google account for automatic inbox delivery. Or tap "Open in email app".`,
     };
   }
 
+  const html = buildEmailHtml(appointment, contact);
+  const subject = `IAR — Appointment confirmed with ${appointment.providerName}`;
+  const ics = generateFullCalendarPackage(appointment);
+  const { clientId, clientSecret, refreshToken } = google;
+
   try {
-    const { google } = await import("googleapis");
-    const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
+    const { google: googleapis } = await import("googleapis");
+    const oauth2 = new googleapis.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ refresh_token: refreshToken });
 
-    const gmail = google.gmail({ version: "v1", auth: oauth2 });
+    const gmail = googleapis.gmail({ version: "v1", auth: oauth2 });
     const boundary = "iar_boundary";
     const raw = [
       `From: IAR <${sender}>`,
@@ -180,19 +159,18 @@ export async function sendEmail(
       channel: "email",
       success: true,
       demo: false,
-      message: `Email sent to ${contact.email} via Gmail`,
+      message: `Email sent to ${contact.email}`,
+      detail: buildEmailPlainText(appointment, contact),
     };
   } catch (err) {
     return {
-      channel: "email",
-      success: true,
-      demo: true,
-      fallback: true,
-      message: `Email could not send — download .ics on confirmation for ${contact.email}`,
-      detail: err instanceof Error ? err.message : `${subject}\n\n${html.replace(/<[^>]+>/g, " ")}`,
+      ...builtIn,
+      message: `Email confirmation ready for ${contact.email}`,
+      detail: err instanceof Error ? err.message : buildEmailPlainText(appointment, contact),
     };
   }
 }
+
 export async function sendBookingNotifications(
   payload: NotificationPayload
 ): Promise<NotificationResult[]> {

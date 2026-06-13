@@ -1,65 +1,63 @@
 import type { Appointment } from "@/types";
-import { CALENDLY_BOOKING_URL } from "@/lib/config";
+import { GOOGLE_MEETUP_BOOKING_URL } from "@/lib/config";
+import { getGoogleCredentials } from "@/lib/integrations/credentials";
 import { formatDate, formatTime } from "@/lib/utils";
 
 export interface CalendarPushResult {
   success: boolean;
-  demo: boolean;
-  fallback?: boolean;
-  provider: "google_calendar" | "calendly" | "ics_only";
+  provider: "google_calendar" | "google_meetup" | "ics_only";
   message: string;
   eventId?: string;
-  calendlyUrl?: string;
+  eventUrl?: string;
+  meetupBookingUrl?: string;
+  calendarUrl?: string;
   detail?: string;
 }
 
-function calendlyFallbackMessage(): CalendarPushResult {
-  if (CALENDLY_BOOKING_URL) {
-    return {
-      success: true,
-      demo: true,
-      fallback: true,
-      provider: "calendly",
-      message: `Use Calendly to add this to your calendar: ${CALENDLY_BOOKING_URL}`,
-      calendlyUrl: CALENDLY_BOOKING_URL,
-    };
-  }
+function meetupBookingResult(appointment: Appointment, extra?: Partial<CalendarPushResult>): CalendarPushResult {
+  const when = `${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)}`;
+
   return {
     success: true,
-    demo: true,
-    fallback: true,
-    provider: "ics_only",
-    message: "Calendar sync unavailable — download .ics file below",
+    provider: "google_meetup",
+    message: `Book or view your meetup on Google Calendar (${when}).`,
+    meetupBookingUrl: GOOGLE_MEETUP_BOOKING_URL,
+    calendarUrl: GOOGLE_MEETUP_BOOKING_URL,
+    ...extra,
   };
 }
+
 export async function pushToGoogleCalendar(
   appointment: Appointment,
   attendeeEmail?: string
 ): Promise<CalendarPushResult> {
-  const clientId = process.env.GOOGLE_CALENDAR_CLIENT_ID ?? process.env.GMAIL_CLIENT_ID;
-  const clientSecret =
-    process.env.GOOGLE_CALENDAR_CLIENT_SECRET ?? process.env.GMAIL_CLIENT_SECRET;
-  const refreshToken =
-    process.env.GOOGLE_CALENDAR_REFRESH_TOKEN ?? process.env.GMAIL_REFRESH_TOKEN;
-  const calendarId = process.env.GOOGLE_CALENDAR_ID ?? "primary";
+  const google = getGoogleCredentials();
+  const when = `${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)}`;
 
-  if (!clientId || !clientSecret || !refreshToken) {
-    return calendlyFallbackMessage();
+  if (!google) {
+    return meetupBookingResult(appointment, {
+      detail:
+        "Optional: connect Google OAuth at /setup to auto-create calendar events. Meetup booking link is ready below.",
+    });
   }
+
+  const { clientId, clientSecret, refreshToken, calendarId = "primary" } = google;
+
   try {
-    const { google } = await import("googleapis");
-    const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
+    const { google: googleapis } = await import("googleapis");
+    const oauth2 = new googleapis.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ refresh_token: refreshToken });
 
-    const calendar = google.calendar({ version: "v3", auth: oauth2 });
+    const calendar = googleapis.calendar({ version: "v3", auth: oauth2 });
     const start = new Date(appointment.dateTime);
     const end = new Date(start.getTime() + appointment.duration * 60_000);
 
     const event = await calendar.events.insert({
       calendarId,
+      sendUpdates: attendeeEmail ? "all" : "none",
       requestBody: {
         summary: `${appointment.specialty} — ${appointment.providerName}`,
-        description: `IAR booking\nSymptoms: ${appointment.symptoms}\nPriority: ${appointment.priorityBand}`,
+        description: `IAR booking\nSymptoms: ${appointment.symptoms}\nPriority: ${appointment.priorityBand}\nMeetup: ${GOOGLE_MEETUP_BOOKING_URL}`,
         location: appointment.location,
         start: { dateTime: start.toISOString() },
         end: { dateTime: end.toISOString() },
@@ -74,18 +72,23 @@ export async function pushToGoogleCalendar(
       },
     });
 
+    const eventUrl = event.data.htmlLink ?? undefined;
+    const inviteNote = attendeeEmail
+      ? ` A calendar invite was sent to ${attendeeEmail}.`
+      : "";
+
     return {
       success: true,
-      demo: false,
       provider: "google_calendar",
-      message: `Event created in Google Calendar for ${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)}`,
+      message: `Added to Google Calendar for ${when}.${inviteNote} Use the meetup link to book or manage your slot.`,
       eventId: event.data.id ?? undefined,
+      eventUrl,
+      meetupBookingUrl: GOOGLE_MEETUP_BOOKING_URL,
+      calendarUrl: eventUrl ?? GOOGLE_MEETUP_BOOKING_URL,
     };
   } catch (err) {
-    const fallback = calendlyFallbackMessage();
-    return {
-      ...fallback,
+    return meetupBookingResult(appointment, {
       detail: err instanceof Error ? err.message : String(err),
-    };
+    });
   }
 }

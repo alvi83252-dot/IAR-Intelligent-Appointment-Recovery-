@@ -61,7 +61,7 @@ export default function AppointmentRequestPage() {
       return;
     }
     if (!isValidEmail(email)) {
-      setFormError("Please enter a valid email for Gmail calendar confirmation.");
+      setFormError("Please enter a valid email for confirmation.");
       return;
     }
     if (!isValidPhone(phone)) {
@@ -95,7 +95,7 @@ export default function AppointmentRequestPage() {
           Your Personal Agent will coordinate with Research and Front Desk agents to find the best slot.
         </p>
         <p className="mt-2 text-sm text-iar-teal">
-          We will send an SMS to your phone and a Gmail confirmation with calendar details when booked.
+          We will send an SMS to your phone and an email confirmation. Meetups are booked via Google Calendar and sync across linked calendars.
         </p>
         {isVoice && (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -127,7 +127,7 @@ export default function AppointmentRequestPage() {
               </div>
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-medium">
-                  <Mail className="h-4 w-4" /> Email (Gmail confirmation)
+                  <Mail className="h-4 w-4" /> Email (confirmation)
                 </label>
                 <Input
                   type="email"
