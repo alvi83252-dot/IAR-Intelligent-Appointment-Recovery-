@@ -4,6 +4,17 @@
 
 IAR is a patient-facing, GP-side appointment orchestration platform. AI agents negotiate scheduling, prioritization, swaps, and disruption recovery — reading and writing to **System C IAR** as the PAS/EPR ledger. IAR complements the record system; it does not replace it.
 
+## For AI coding agents
+
+This repo is set up for Claude Code, Cursor, and OpenAI Codex. Before coding, read:
+
+- **[`CLAUDE.md`](./CLAUDE.md)** — canonical build spec (Agent Cards, `iar.*` schemas, algorithms, degradation ladder). Auto-loaded by Claude Code.
+- **[`AGENTS.md`](./AGENTS.md)** — shared rules for Cursor & Codex (summary + pointer to the canonical docs).
+- **[`IAR_PROJECT_SPEC.md`](./IAR_PROJECT_SPEC.md)** — full project specification.
+- **[`.cursor/rules/iar.mdc`](./.cursor/rules/iar.mdc)** — Cursor always-apply rule.
+
+Project skills live in `.agents/skills/` (also exposed to Claude Code via `.claude/skills`): `iar-a2a-agents`, `iar-domain-rules`, `iar-frontend-voice`.
+
 ## Quick Start
 
 ```bash
