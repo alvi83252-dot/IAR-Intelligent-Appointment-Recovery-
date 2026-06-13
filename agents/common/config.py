@@ -30,6 +30,10 @@ DEFAULT_LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash")
 # API key. Accept GOOGLE_API_KEY as an alias (the google-genai SDK uses it too).
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
 
+# Linkup web-search key — used ONLY for the research agent's find_alternatives
+# signposting (official NHS sources). Empty => the built-in mock directory is used.
+LINKUP_API_KEY: str = os.getenv("LINKUP_API_KEY", "")
+
 # Per-agent model selection. Personal + Front Desk run on Gemini Flash; research
 # is configured independently (defaults to the same model if unset).
 AGENT_MODELS: dict[str, str] = {
@@ -37,6 +41,10 @@ AGENT_MODELS: dict[str, str] = {
     "frontdesk": os.getenv("FRONTDESK_AGENT_MODEL", DEFAULT_LLM_MODEL),
     "research": os.getenv("RESEARCH_AGENT_MODEL", DEFAULT_LLM_MODEL),
 }
+
+# Optional cheaper/faster model for the disruption batch re-score (~14 bookings at
+# once) to protect the demo timeline; defaults to the research agent's model.
+RESEARCH_BATCH_MODEL: str = os.getenv("RESEARCH_BATCH_MODEL", AGENT_MODELS["research"])
 
 # A2A service URLs (consumed once the agent servers exist; no hardcoded peers).
 AGENT_URLS: dict[str, str] = {

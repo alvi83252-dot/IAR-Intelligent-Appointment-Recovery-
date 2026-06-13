@@ -4,3 +4,6 @@
 # are added as the A2A servers are built out — see CLAUDE.md "Repo structure".
 google-genai>=0.3.0
 python-dotenv>=1.0.0
+# Research-agent find_alternatives grounding (official NHS-website web search).
+linkup-sdk>=0.2.0
+# dev/tests: pip install pytest
