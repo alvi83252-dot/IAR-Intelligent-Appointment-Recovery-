@@ -73,38 +73,60 @@ class GeminiClient:
 _PROVIDERS: dict[str, type] = {"gemini": GeminiClient}
 
 
-def get_llm(agent: str) -> LLMClient:
-    """Return an LLM client for ``agent`` (personal|frontdesk|research).
-
-    Model comes from :func:`config.model_for`; provider from ``LLM_PROVIDER``
-    (default ``gemini``). Raises :class:`LLMError` on misconfiguration.
-    """
+def get_llm_for_model(model: str) -> LLMClient:
+    """Return an LLM client bound to an explicit ``model`` id (provider from ``LLM_PROVIDER``)."""
     provider = config.LLM_PROVIDER.lower()
     impl = _PROVIDERS.get(provider)
     if impl is None:
         raise LLMError(
             f"Unknown LLM_PROVIDER '{provider}'. Known providers: {sorted(_PROVIDERS)}"
         )
-    return impl(model=config.model_for(agent), api_key=config.GEMINI_API_KEY)
+    return impl(model=model, api_key=config.GEMINI_API_KEY)
+
+
+def get_llm(agent: str) -> LLMClient:
+    """Return an LLM client for ``agent`` (personal|frontdesk|research).
+
+    Model comes from :func:`config.model_for`; provider from ``LLM_PROVIDER``
+    (default ``gemini``). Raises :class:`LLMError` on misconfiguration.
+    """
+    return get_llm_for_model(config.model_for(agent))
 
 
 def _smoke() -> int:
-    """Verify the personal + frontdesk agents can reach Gemini Flash, in isolation."""
+    """Check every configured model is responsive, in isolation.
+
+    Covers each agent's model (personal / frontdesk / research) plus the optional
+    disruption batch model, de-duplicated, reporting which roles use each model.
+    Continues through all models so one failure doesn't hide the rest.
+    """
     print(f"provider={config.LLM_PROVIDER}  default_model={config.DEFAULT_LLM_MODEL}")
-    for agent in ("personal", "frontdesk"):
-        model = config.model_for(agent)
-        print(f"\n[{agent}] model={model}")
+
+    # distinct configured model -> roles that use it
+    roles: dict[str, list[str]] = {}
+    for agent in ("personal", "frontdesk", "research"):
+        roles.setdefault(config.model_for(agent), []).append(agent)
+    roles.setdefault(config.RESEARCH_BATCH_MODEL, []).append("research-batch")
+
+    failures = 0
+    for model, used_by in roles.items():
+        print(f"\n[{model}]  used by: {', '.join(used_by)}")
         try:
-            client = get_llm(agent)
+            client = get_llm_for_model(model)
             reply = client.complete(
                 "Reply with exactly: IAR LLM OK",
                 system="You are a terse health-service scheduling assistant.",
             )
-            print(f"[{agent}] -> {reply!r}")
+            print(f"[{model}] -> {reply!r}")
         except LLMError as exc:
-            print(f"[{agent}] NOT READY: {exc}")
-            return 1
-    print("\nAll configured agents reached the model. OK")
+            print(f"[{model}] NOT RESPONSIVE: {exc}")
+            failures += 1
+
+    checked = len(roles)
+    if failures:
+        print(f"\n{failures}/{checked} model(s) NOT responsive.")
+        return 1
+    print(f"\nAll {checked} configured model(s) responded. OK")
     return 0
 
 
