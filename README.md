@@ -1,8 +1,8 @@
-# IAR — Intelligent Appointment Routing
+# IAR — Intelligent Appointment Recovery
 
 **AI Agents That Keep Healthcare Moving.**
 
-IAR is a patient-facing, GP-side appointment orchestration platform. AI agents negotiate scheduling, prioritization, swaps, and disruption recovery — reading and writing to **System C CareFlow** as the PAS/EPR ledger. IAR complements the record system; it does not replace it.
+IAR is a patient-facing, GP-side appointment orchestration platform. AI agents negotiate scheduling, prioritization, swaps, and disruption recovery — reading and writing to **System C IAR** as the PAS/EPR ledger. IAR complements the record system; it does not replace it.
 
 ## For AI coding agents
 
@@ -29,7 +29,7 @@ Open [http://localhost:3000](http://localhost:3000)
 | Layer | Role |
 |-------|------|
 | **IAR** | Patient-facing orchestration — agents negotiate appointments |
-| **System C CareFlow** | NHS PAS/EPR ledger — Front Desk Agent reads/writes via adapter |
+| **System C IAR** | NHS PAS/EPR ledger — Front Desk Agent reads/writes via adapter |
 | **Personal Agent** | Patient representative — calendar, preferences, notifications |
 | **Research Agent** | GP priority scoring and triage |
 | **Front Desk Agent** | PAS ledger coordinator — availability, booking, recovery |
@@ -63,7 +63,7 @@ All agents, A2A communication, and PAS ledger operations run locally with mock d
 |----------|-------------|
 | `/api/agents` | Agent cards |
 | `/api/a2a` | A2A message bus |
-| `/api/pas` | System C CareFlow ledger snapshot |
+| `/api/pas` | System C IAR ledger snapshot |
 | `/api/priority` | Priority assessment |
 | `/api/appointments` | Appointment data |
 

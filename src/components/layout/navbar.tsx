@@ -13,6 +13,7 @@ import { APP_NAME, isDemoMode } from "@/lib/config";
 
 const navLinks = [
   { href: "/dashboard", label: "Patient" },
+  { href: "/copilot", label: "Copilot" },
   { href: "/request", label: "Request" },
   { href: "/agents", label: "Agents" },
   { href: "/swap", label: "Swap Center" },
@@ -24,7 +25,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isLanding = pathname === "/";
+  const isLanding = pathname === "/" || pathname === "/start";
 
   if (isLanding) return null;
 
@@ -34,7 +35,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2">
           <motion.div
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-careflow-teal to-careflow-teal-light"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-iar-teal to-iar-teal-light"
           >
             <Activity className="h-4 w-4 text-white" />
           </motion.div>

@@ -1,27 +1,98 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, CheckCircle, Download, MapPin, User } from "lucide-react";
+import { Calendar, CheckCircle, Download, Loader2, Mail, MapPin, MessageSquare, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VoiceOptionsPanel } from "@/components/access/voice-options-panel";
 import { PriorityBadge } from "@/components/priority/priority-badge";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
+import { GOOGLE_MEETUP_BOOKING_URL } from "@/lib/config";
 import { downloadICS, generateFullCalendarPackage } from "@/lib/calendar";
 import { formatDate, formatTime } from "@/lib/utils";
 
 export default function BookingConfirmationPage() {
-  const lastBooked = useCareFlowStore((s) => s.lastBookedAppointment);
-  const appointments = useCareFlowStore((s) => s.appointments);
+  const lastBooked = useIARStore((s) => s.lastBookedAppointment);
+  const appointments = useIARStore((s) => s.appointments);
+  const patientContact = useIARStore((s) => s.patientContact);
+  const notificationResults = useIARStore((s) => s.lastNotificationResults);
+  const calendarResult = useIARStore((s) => s.lastCalendarResult);
+
+  const [sending, setSending] = useState(false);
+  const [gmailReady, setGmailReady] = useState<boolean | null>(null);
+  const sentRef = useRef(false);
 
   const appointment = lastBooked ?? appointments[0];
+
+  const deliverConfirmations = async () => {
+    if (!appointment || !patientContact) return;
+    setSending(true);
+    try {
+      const existingCalendar = useIARStore.getState().lastCalendarResult;
+      const notifyRes = await fetch("/api/notifications/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact: patientContact, appointment }),
+      });
+
+      let calendarData = existingCalendar;
+      if (!existingCalendar) {
+        const calendarRes = await fetch("/api/calendar/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ appointment, email: patientContact.email }),
+        });
+        calendarData = await calendarRes.json();
+      }
+
+      const notifyData = await notifyRes.json();
+
+      useIARStore.setState((state) => {
+        const results = notifyData.results ?? null;
+        const extraNotifications =
+          results?.map((result: { channel: string; message: string; demo?: boolean }) => ({
+            id: `notif_${result.channel}_${Date.now()}`,
+            title: result.channel === "sms" ? "SMS confirmation" : "Email confirmation",
+            message: result.message,
+            type: "info" as const,
+            read: false,
+            createdAt: new Date().toISOString(),
+          })) ?? [];
+
+        return {
+          lastNotificationResults: results,
+          lastCalendarResult: calendarData ?? null,
+          notifications: extraNotifications.length
+            ? [...extraNotifications, ...state.notifications]
+            : state.notifications,
+        };
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetch("/api/integrations/google/settings")
+      .then((r) => r.json())
+      .then((d: { gmailConfigured?: boolean }) => setGmailReady(!!d.gmailConfigured))
+      .catch(() => setGmailReady(false));
+  }, []);
+
+  useEffect(() => {
+    if (!appointment || !patientContact || sentRef.current) return;
+    sentRef.current = true;
+    void deliverConfirmations();
+  }, [appointment, patientContact]);
 
   if (!appointment) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12 text-center">
         <p className="text-muted-foreground">No appointment to confirm.</p>
         <Button className="mt-4" asChild>
-          <Link href="/request">Request Appointment</Link>
+          <Link href="/start">Get Started</Link>
         </Button>
       </div>
     );
@@ -29,8 +100,47 @@ export default function BookingConfirmationPage() {
 
   const handleDownloadCalendar = () => {
     const ics = generateFullCalendarPackage(appointment);
-    downloadICS(ics, `careflow-appointment-${appointment.id}.ics`);
+    downloadICS(ics, `iar-appointment-${appointment.id}.ics`);
   };
+
+  const meetupUrl =
+    calendarResult?.meetupBookingUrl ??
+    calendarResult?.eventUrl ??
+    calendarResult?.calendarUrl ??
+    GOOGLE_MEETUP_BOOKING_URL;
+
+  const nextOptions = [
+    {
+      id: "download",
+      label: "Download calendar file",
+      description: "Save the appointment to your phone or computer with reminders.",
+      onSelect: handleDownloadCalendar,
+    },
+    {
+      id: "google-meetup",
+      label: "Book meetup on Google Calendar",
+      description: "Open your Google Calendar appointment page to schedule or manage the meetup.",
+      href: meetupUrl,
+    },
+    {
+      id: "timeline",
+      label: "View agent timeline",
+      description: "See how your Personal, Research, and Front Desk agents coordinated.",
+      href: "/timeline",
+    },
+    {
+      id: "dashboard",
+      label: "Return to patient dashboard",
+      description: "Go back to your home screen and notifications.",
+      href: "/dashboard",
+    },
+    {
+      id: "request",
+      label: "Book another appointment",
+      description: "Start a new appointment request with text or voice.",
+      href: "/start",
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
@@ -52,6 +162,98 @@ export default function BookingConfirmationPage() {
           Your agents have coordinated and secured your slot.
         </p>
       </motion.div>
+
+      {(patientContact || sending || notificationResults) && (
+        <Card className="mt-6 border-iar-teal/20 bg-iar-teal/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              {sending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Sending confirmations…
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="h-4 w-4 text-iar-teal" /> Confirmations sent
+                </>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {patientContact && (
+              <p className="text-muted-foreground">
+                To <strong>{patientContact.phone}</strong> (SMS) and{" "}
+                <strong>{patientContact.email}</strong> (email)
+              </p>
+            )}
+            {gmailReady === false && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+                <p className="font-medium text-amber-900 dark:text-amber-200">
+                  Gmail is not connected — emails won&apos;t arrive in your inbox automatically.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Sign in with Google once (Gmail only — no Twilio):
+                </p>
+                <Button variant="premium" size="sm" className="mt-2" asChild>
+                  <Link href="/setup">Sign in with Google</Link>
+                </Button>
+              </div>
+            )}
+            {notificationResults?.map((result) => (
+              <div key={result.channel} className="flex items-start gap-2">
+                {result.channel === "sms" ? (
+                  <MessageSquare className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : (
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p>
+                    {result.message}
+                    {result.demo && (
+                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">in-app</span>
+                    )}
+                  </p>
+                  {result.detail && (
+                    <p className="mt-1 whitespace-pre-wrap rounded-lg bg-background/80 p-2 text-xs text-muted-foreground">
+                      {result.detail.slice(0, 320)}
+                    </p>
+                  )}
+                  {result.actionUrl && (
+                    <Button variant="outline" size="sm" className="mt-2" asChild>
+                      <a href={result.actionUrl}>
+                        {result.channel === "sms" ? "Open in Messages" : "Open in email app"}
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {calendarResult && (
+              <div className="space-y-2">
+                <p className={`flex items-start gap-2 ${calendarResult.success ? undefined : "text-destructive"}`}>
+                  <Calendar className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    {calendarResult.message}
+                    {!calendarResult.success && (
+                      <span className="ml-2 rounded bg-destructive/10 px-1.5 py-0.5 text-xs text-destructive">
+                        failed
+                      </span>
+                    )}
+                  </span>
+                </p>
+                {calendarResult.detail && (
+                  <p className="text-xs text-muted-foreground">{calendarResult.detail.slice(0, 240)}</p>
+                )}
+                <Button variant="premium" size="sm" asChild className="w-full sm:w-auto">
+                  <a href={meetupUrl} target="_blank" rel="noopener noreferrer">
+                    <Calendar className="h-4 w-4" />
+                    Book meetup on Google Calendar
+                  </a>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -86,27 +288,18 @@ export default function BookingConfirmationPage() {
               <p className="mt-1 text-sm">{appointment.symptoms}</p>
             </div>
 
-            <div className="border-t pt-4">
-              <p className="mb-3 text-sm font-medium">Calendar Package Includes:</p>
-              <ul className="space-y-1 text-xs text-muted-foreground">
-                <li>• Appointment event</li>
-                <li>• Reminder — 1 day before</li>
-                <li>• Reminder — 1 hour before</li>
-                <li>• Reminder — 10 minutes before</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button variant="premium" className="flex-1" onClick={handleDownloadCalendar}>
-                <Download className="h-4 w-4" /> Download Calendar (.ics)
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/timeline">View Timeline</Link>
-              </Button>
-            </div>
+            <Button variant="premium" className="w-full sm:hidden" onClick={handleDownloadCalendar}>
+              <Download className="h-4 w-4" /> Download Calendar (.ics)
+            </Button>
           </CardContent>
         </Card>
       </motion.div>
+
+      <VoiceOptionsPanel
+        title="What would you like to do next?"
+        intro={`Your appointment with ${appointment.providerName} on ${formatDate(appointment.dateTime)} is confirmed. Here are your available options.`}
+        options={nextOptions}
+      />
     </div>
   );
 }

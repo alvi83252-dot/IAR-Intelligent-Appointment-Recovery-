@@ -33,10 +33,15 @@ import {
   runDisruptionCascade,
 } from "@/services/orchestrator";
 import type { AppointmentRequest } from "@/types";
+import type { PatientContact } from "@/types";
+import {
+  calendarConfirmationLine,
+  pushBookingToGoogleCalendar,
+} from "@/lib/calendar/push-booking-client";
 
 pasAdapter.initialize(INITIAL_PAS_SLOTS, INITIAL_APPOINTMENTS);
 
-interface CareFlowState {
+interface IARState {
   appointments: Appointment[];
   swapProposals: SwapProposal[];
   disruption: DisruptionEvent;
@@ -46,6 +51,24 @@ interface CareFlowState {
   agentCards: AgentCard[];
   lastAssessment: PriorityAssessment | null;
   lastBookedAppointment: Appointment | null;
+  patientContact: PatientContact | null;
+  lastNotificationResults: Array<{
+    channel: string;
+    success: boolean;
+    demo?: boolean;
+    message: string;
+    detail?: string;
+    actionUrl?: string;
+  }> | null;
+  lastCalendarResult: {
+    success: boolean;
+    provider: string;
+    message: string;
+    eventUrl?: string;
+    meetupBookingUrl?: string;
+    calendarUrl?: string;
+    detail?: string;
+  } | null;
   capacityMetrics: typeof CAPACITY_METRICS;
   pasSnapshot: PasLedgerSnapshot;
   pasWriteLog: PasWriteLog[];
@@ -65,7 +88,7 @@ interface CareFlowState {
   resetDemo: () => void;
 }
 
-export const useCareFlowStore = create<CareFlowState>((set, get) => ({
+export const useIARStore = create<IARState>((set, get) => ({
   appointments: INITIAL_APPOINTMENTS,
   swapProposals: INITIAL_SWAP_PROPOSALS,
   disruption: INITIAL_DISRUPTION,
@@ -75,6 +98,9 @@ export const useCareFlowStore = create<CareFlowState>((set, get) => ({
   agentCards: AGENT_CARDS,
   lastAssessment: null,
   lastBookedAppointment: null,
+  patientContact: null,
+  lastNotificationResults: null,
+  lastCalendarResult: null,
   capacityMetrics: CAPACITY_METRICS,
   pasSnapshot: pasAdapter.getSnapshot(),
   pasWriteLog: pasAdapter.getWriteLog(),
@@ -119,9 +145,29 @@ export const useCareFlowStore = create<CareFlowState>((set, get) => ({
 
       get().refreshPasLedger();
 
+      const calendarResult = await pushBookingToGoogleCalendar(appointment, request.email);
+
       set((state) => ({
         lastBookedAppointment: appointment,
+        lastCalendarResult: calendarResult,
+        patientContact: {
+          name: request.patientName,
+          email: request.email,
+          phone: request.phone,
+        },
         notifications: [
+          ...(calendarResult?.provider === "google_calendar"
+            ? [
+                {
+                  id: `notif_cal_${Date.now()}`,
+                  title: "Google Calendar",
+                  message: calendarConfirmationLine(calendarResult),
+                  type: "success" as const,
+                  read: false,
+                  createdAt: new Date().toISOString(),
+                },
+              ]
+            : []),
           {
             id: `notif_${Date.now()}`,
             title: "Appointment Confirmed",
@@ -267,6 +313,9 @@ export const useCareFlowStore = create<CareFlowState>((set, get) => ({
       agentCards: AGENT_CARDS,
       lastAssessment: null,
       lastBookedAppointment: null,
+      patientContact: null,
+      lastNotificationResults: null,
+      lastCalendarResult: null,
       capacityMetrics: CAPACITY_METRICS,
       pasSnapshot: pasAdapter.getSnapshot(),
       pasWriteLog: pasAdapter.getWriteLog(),

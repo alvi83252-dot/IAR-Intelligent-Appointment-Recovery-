@@ -201,7 +201,7 @@ export const INITIAL_TIMELINE: TimelineEvent[] = [
     timestamp: addHours(now, -70).toISOString(),
     type: "booking",
     title: "PAS Ledger Updated",
-    description: "Front Desk Agent wrote booking to System C CareFlow for Dr. James Chen.",
+    description: "Front Desk Agent wrote booking to System C IAR for Dr. James Chen.",
     agentId: "front-desk",
   },
   {
@@ -238,7 +238,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     steps: [
       "Patient submits symptoms and availability",
       "Research Agent evaluates urgency",
-      "Front Desk Agent queries System C CareFlow",
+      "Front Desk Agent queries System C IAR",
       "Appointment confirmed and calendar synced",
     ],
   },

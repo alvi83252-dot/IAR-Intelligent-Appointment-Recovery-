@@ -5,14 +5,14 @@ import { ArrowLeftRight, Check, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { formatDateTime } from "@/lib/utils";
 
 export default function SwapCenterPage() {
-  const swapProposals = useCareFlowStore((s) => s.swapProposals);
-  const acceptSwap = useCareFlowStore((s) => s.acceptSwap);
-  const declineSwap = useCareFlowStore((s) => s.declineSwap);
-  const isProcessing = useCareFlowStore((s) => s.isProcessing);
+  const swapProposals = useIARStore((s) => s.swapProposals);
+  const acceptSwap = useIARStore((s) => s.acceptSwap);
+  const declineSwap = useIARStore((s) => s.declineSwap);
+  const isProcessing = useIARStore((s) => s.isProcessing);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">

@@ -21,6 +21,7 @@
 # misc
 .DS_Store
 *.pem
+.iar-secrets/
 
 # debug
 npm-debug.log*
@@ -28,11 +29,23 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (never commit real keys; .env.example is the committed template)
+.env
+.env.*
+!.env.example
 .env*.local
 .iar-secrets/
 kb/embeddings.json
 
+# python (IAR agents)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+package-lock.json
+.gitignore

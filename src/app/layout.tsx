@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: `${APP_NAME} — ${APP_TAGLINE}`,
-  description: `${APP_FULL_NAME}. Patient-facing GP appointment orchestration via AI agents — complements System C CareFlow PAS/EPR.`,
+  description: `${APP_FULL_NAME}. Patient-facing GP appointment orchestration via AI agents — complements System C IAR PAS/EPR.`,
 };
 
 export default function RootLayout({
@@ -16,6 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="/copilotkit.css" />
+      </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AppShell>{children}</AppShell>

@@ -1,196 +1,284 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
+import { Activity, ArrowRight, Mic, Sparkles } from "lucide-react";
 import {
-  Activity,
-  ArrowRight,
-  Bot,
-  Calendar,
-  Database,
-  RefreshCw,
-  Shield,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+  CopilotChat,
+  CopilotKit,
+  useConfigureSuggestions,
+} from "@copilotkit/react-core/v2";
+import { QuotaNotice } from "@/components/chat/quota-notice";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { StatCard } from "@/components/metrics/stat-card";
-import { ScrollReveal, StaggerReveal, StaggerItem } from "@/components/motion/scroll-reveal";
-import {
-  APP_FULL_NAME,
-  APP_NAME,
-  APP_TAGLINE,
-  PAS_LEDGER_NAME,
-} from "@/lib/config";
-import { AGENT_CARDS } from "@/agents/agent-cards";
+import { ScrollProgress } from "@/components/motion/scroll-progress";
+import { isQuotaErrorMessage } from "@/lib/copilot/gemini-health";
+import { APP_FULL_NAME, APP_NAME } from "@/lib/config";
+import { useAccessMode } from "@/lib/voice/use-access-mode";
 
-const metrics = [
-  { title: "Capacity Recovered", value: "847", subtitle: "GP slots this month", icon: RefreshCw, trend: "+23% via agent coordination" },
-  { title: "Avg Wait Reduction", value: "4.2d", subtitle: "for urgent patients", icon: Zap, trend: "Through intelligent swaps" },
-  { title: "Recovery Success", value: "94%", subtitle: "disruption cascades", icon: Shield, trend: "PAS ledger recovery" },
-  { title: "Agent Tasks", value: "12.4k", subtitle: "A2A messages processed", icon: Bot, trend: "Real-time coordination" },
-];
+export type ChatHealth =
+  | { state: "checking" }
+  | { state: "online"; provider?: string }
+  | {
+      state: "offline";
+      message: string;
+      billingUrl?: string;
+      docsUrl?: string;
+    };
 
-export default function LandingPage() {
+function ChatSuggestions() {
+  useConfigureSuggestions({
+    suggestions: [
+      { title: "Book appointment", message: "I want to book a GP appointment" },
+      { title: "How IAR works", message: "How does IAR help with GP appointments?" },
+      { title: "Urgent help", message: "I have chest pain — what should I do?" },
+    ],
+    available: "before-first-message",
+  });
+  return null;
+}
+
+function IARChatContent({ health }: { health: ChatHealth }) {
+  const router = useRouter();
+  const { setMode } = useAccessMode();
+  const reducedMotion = useReducedMotion();
+
+  const providerLabel =
+    health.state === "online"
+      ? `Powered by ${health.provider ?? "Google Gemini"}`
+      : health.state === "offline"
+        ? "Gemini credits needed"
+        : "Checking AI status…";
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-hero-gradient" />
-      <motion.div
-        animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-        className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-careflow-teal/10 blur-3xl"
-      />
-      <motion.div
-        animate={{ y: [0, 15, 0], x: [0, -10, 0] }}
-        transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
-        className="pointer-events-none absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-careflow-sky/10 blur-3xl"
-      />
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
+      <ScrollProgress />
+      <ChatSuggestions />
 
-      <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
+      {!reducedMotion && (
+        <>
           <motion.div
-            whileHover={{ rotate: 10, scale: 1.05 }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-careflow-teal to-careflow-teal-light"
-          >
-            <Activity className="h-5 w-5 text-white" />
-          </motion.div>
-          <div>
-            <span className="text-xl font-semibold">{APP_NAME}</span>
-            <p className="text-[10px] text-muted-foreground">{APP_FULL_NAME}</p>
+            animate={{ y: [0, -18, 0], x: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+            className="pointer-events-none absolute -right-24 top-20 h-72 w-72 rounded-full bg-iar-teal/10 blur-3xl"
+          />
+          <motion.div
+            animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
+            transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+            className="pointer-events-none absolute -left-20 bottom-32 h-64 w-64 rounded-full bg-iar-sky/10 blur-3xl"
+          />
+        </>
+      )}
+
+      <motion.header
+        initial={reducedMotion ? false : { opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-xl"
+      >
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <motion.div
+              whileHover={reducedMotion ? undefined : { rotate: 8, scale: 1.05 }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-iar-teal to-iar-teal-light shadow-md shadow-iar-teal/20"
+            >
+              <Activity className="h-4 w-4 text-white" />
+            </motion.div>
+            <div>
+              <p className="text-sm font-semibold">{APP_NAME}</p>
+              <p className="text-[10px] text-muted-foreground">{APP_FULL_NAME}</p>
+              <p
+                className={
+                  health.state === "offline"
+                    ? "text-[10px] text-amber-600 dark:text-amber-400"
+                    : "text-[10px] text-iar-teal"
+                }
+              >
+                {providerLabel}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/about">About</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/test">Test tools</Link>
+            </Button>
+            <ThemeToggle />
           </div>
         </div>
-        <ThemeToggle />
-      </header>
+      </motion.header>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-6 pb-24 pt-12 sm:pt-20">
+      <main className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-4">
+        {health.state === "offline" && (
+          <QuotaNotice
+            message={health.message}
+            billingUrl={health.billingUrl}
+            docsUrl={health.docsUrl}
+          />
+        )}
+
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-4xl text-center"
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="mb-4 flex flex-wrap gap-2"
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-careflow-teal/30 bg-careflow-teal/10 px-4 py-1.5 text-sm text-careflow-teal">
-            <Sparkles className="h-4 w-4" />
-            GP-side · Patient-facing · Agent-orchestrated
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-            {APP_TAGLINE.split(" ").slice(0, 3).join(" ")}{" "}
-            <span className="text-gradient">
-              {APP_TAGLINE.split(" ").slice(3).join(" ")}
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            {APP_NAME} intelligently coordinates GP appointments through interoperable AI agents —
-            sitting on top of <strong className="text-foreground">{PAS_LEDGER_NAME}</strong>, not replacing it.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button variant="premium" size="lg" asChild>
-              <Link href="/dashboard">
-                Start Demo <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/agents">Explore Agents</Link>
-            </Button>
-          </div>
+          {[
+            { label: "Book appointment", href: "/start", variant: "outline" as const },
+            { label: "Voice mode", action: "voice" as const, variant: "outline" as const },
+            { label: "Get started", href: "/start", variant: "premium" as const },
+          ].map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.06 }}
+              whileHover={reducedMotion ? undefined : { scale: 1.03 }}
+              whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+            >
+              {item.action === "voice" ? (
+                <Button
+                  variant={item.variant}
+                  size="sm"
+                  onClick={() => {
+                    setMode("voice");
+                    router.push("/start");
+                  }}
+                >
+                  <Mic className="mr-1 h-3 w-3" />
+                  Voice mode
+                </Button>
+              ) : (
+                <Button variant={item.variant} size="sm" asChild>
+                  <Link href={item.href!}>
+                    {item.label}
+                    {item.variant === "premium" && (
+                      <ArrowRight className="ml-1 h-3 w-3" />
+                    )}
+                  </Link>
+                </Button>
+              )}
+            </motion.div>
+          ))}
         </motion.div>
 
-        <ScrollReveal className="mt-20">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {metrics.map((m, i) => (
-              <StatCard key={m.title} {...m} index={i} />
-            ))}
-          </div>
-        </ScrollReveal>
+        <motion.div
+          initial={reducedMotion ? false : { opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.25, duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="relative flex min-h-[calc(100vh-12rem)] flex-1 flex-col overflow-hidden rounded-xl border border-iar-teal/20 bg-card shadow-lg shadow-iar-teal/5"
+        >
+          {!reducedMotion && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 rounded-xl"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgba(13,148,136,0.08), rgba(56,189,248,0.08), transparent)",
+                backgroundSize: "200% 100%",
+              }}
+              animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+              transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+            />
+          )}
+          <CopilotChat
+            className="relative z-10 h-full min-h-[480px] flex-1"
+            labels={{
+              modalHeaderTitle: `${APP_NAME} Assistant`,
+              chatInputPlaceholder:
+                health.state === "offline"
+                  ? "Gemini unavailable — use Get Started to book, or add API credits"
+                  : "Ask about appointments, swaps, or urgent care…",
+              welcomeMessageText:
+                health.state === "offline"
+                  ? `I'm ${APP_NAME}. Gemini AI is out of credits right now, so live chat won't reply until billing is restored. You can still book via Get Started, or for emergencies call 999 / NHS 111.`
+                  : `Hello! I'm ${APP_NAME}, your ${APP_FULL_NAME} assistant. How can I help today?`,
+            }}
+          />
+        </motion.div>
 
-        <ScrollReveal className="mt-24" delay={0.1}>
-          <div className="rounded-2xl border border-border/60 bg-card/50 p-6 backdrop-blur-sm sm:p-8">
-            <div className="flex items-start gap-4">
-              <Database className="h-6 w-6 shrink-0 text-careflow-teal" />
-              <div>
-                <h2 className="text-lg font-semibold">Complement, not copy</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {PAS_LEDGER_NAME} is the NHS PAS/EPR ledger that hospital staff administer.
-                  {APP_NAME} is the patient-facing orchestration layer — agents negotiate appointments
-                  and write results back to the ledger. GP-side, not hospital-side. Agents, not forms.
-                </p>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal className="mt-24">
-          <h2 className="mb-2 text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            Agent Architecture
-          </h2>
-          <p className="mb-10 text-center text-2xl font-semibold">
-            Three agents. One orchestration layer over the PAS ledger.
-          </p>
-          <StaggerReveal className="grid gap-6 md:grid-cols-3">
-            {AGENT_CARDS.map((agent) => (
-              <StaggerItem key={agent.id}>
-                <Card className="h-full border-careflow-teal/20 bg-gradient-to-b from-card to-careflow-teal/5 transition-shadow hover:shadow-lg hover:shadow-careflow-teal/5">
-                  <CardContent className="p-6">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-careflow-teal/10">
-                      <Bot className="h-6 w-6 text-careflow-teal" />
-                    </div>
-                    <h3 className="text-lg font-semibold">{agent.name}</h3>
-                    <p className="text-sm text-careflow-teal">{agent.role}</p>
-                    <p className="mt-3 text-sm text-muted-foreground">{agent.description}</p>
-                  </CardContent>
-                </Card>
-              </StaggerItem>
-            ))}
-          </StaggerReveal>
-        </ScrollReveal>
-
-        <ScrollReveal className="mt-24" delay={0.1}>
-          <div className="rounded-3xl border border-border/60 bg-card/50 p-8 backdrop-blur-sm sm:p-12">
-            <div className="grid items-center gap-8 lg:grid-cols-2">
-              <div>
-                <h2 className="text-3xl font-bold">See the workflow in action</h2>
-                <p className="mt-4 text-muted-foreground">
-                  From GP appointment requests to disruption recovery — watch agents
-                  coordinate and write to the PAS ledger in real time.
-                </p>
-                <ul className="mt-6 space-y-3">
-                  {[
-                    "Patient request → priority assessment → PAS ledger booking",
-                    "Calendar conflict detection and auto-reschedule",
-                    "Urgent patient slot swap negotiation",
-                    "GP partner absence disruption cascade",
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 shrink-0 text-careflow-teal" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button variant="premium" className="mt-8" asChild>
-                  <Link href="/demo">Open Demo Control Center</Link>
-                </Button>
-              </div>
-              <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-careflow-teal/20 to-careflow-sky/10">
-                <motion.div
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ repeat: Infinity, duration: 3 }}
-                  className="text-center"
-                >
-                  <Activity className="mx-auto h-16 w-16 text-careflow-teal" />
-                  <p className="mt-4 text-sm font-medium">Live Agent Coordination</p>
-                  <p className="text-xs text-muted-foreground">A2A · {PAS_LEDGER_NAME} Adapter</p>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      <footer className="relative z-10 border-t border-border/40 py-8 text-center text-sm text-muted-foreground">
-        {APP_NAME} — Orchestration layer for GP appointment routing · Ledger: {PAS_LEDGER_NAME}
-      </footer>
+        <motion.p
+          initial={reducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-3 flex items-center justify-center gap-1 text-center text-xs text-muted-foreground"
+        >
+          <Sparkles className="h-3 w-3 text-iar-teal" />
+          CopilotKit chat · Google Gemini · ElevenLabs for voice when enabled
+        </motion.p>
+      </main>
     </div>
+  );
+}
+
+function offlineFromQuota(message?: string): ChatHealth {
+  return {
+    state: "offline",
+    message:
+      message ??
+      "Gemini prepaid credits are depleted. Add billing at Google AI Studio, or set OPENAI_API_KEY in .env.local and restart the dev server.",
+    billingUrl: "https://aistudio.google.com/apikey",
+    docsUrl: "https://ai.google.dev/gemini-api/docs/billing#prepay",
+  };
+}
+
+export default function HomePage() {
+  const [health, setHealth] = useState<ChatHealth>({ state: "checking" });
+
+  useEffect(() => {
+    void fetch("/api/copilotkit/health")
+      .then((r) => r.json())
+      .then(
+        (data: {
+          online?: boolean;
+          message?: string;
+          provider?: string;
+          billingUrl?: string;
+          docsUrl?: string;
+        }) => {
+          if (data.online) {
+            setHealth({ state: "online", provider: data.provider });
+          } else {
+            setHealth({
+              state: "offline",
+              message:
+                data.message ??
+                "Gemini could not be reached. Add credits or configure another LLM provider.",
+              billingUrl: data.billingUrl,
+              docsUrl: data.docsUrl,
+            });
+          }
+        }
+      )
+      .catch(() => {
+        setHealth({
+          state: "offline",
+          message: "Could not verify Gemini status. Booking via Get Started still works.",
+        });
+      });
+  }, []);
+
+  const handleAgentError = useCallback(
+    (event: { message?: string; error?: Error }) => {
+      const msg = event.message ?? event.error?.message ?? "";
+      if (isQuotaErrorMessage(msg)) {
+        setHealth(offlineFromQuota());
+      }
+    },
+    []
+  );
+
+  return (
+    <CopilotKit
+      runtimeUrl="/api/copilotkit"
+      useSingleEndpoint={false}
+      showDevConsole={false}
+      onError={handleAgentError}
+    >
+      <IARChatContent health={health} />
+    </CopilotKit>
   );
 }

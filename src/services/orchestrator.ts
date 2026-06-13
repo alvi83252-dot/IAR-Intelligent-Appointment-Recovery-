@@ -1,6 +1,6 @@
 import { addDays } from "date-fns";
 import { a2aBus } from "@/agents/a2a-bus";
-import { assessPriority } from "@/lib/priority";
+import { assessPriorityAsync } from "@/lib/priority/gemini-assess";
 import { PAS_LEDGER_NAME } from "@/lib/config";
 import { generateId } from "@/lib/utils";
 import { pasAdapter } from "@/services/pas-adapter";
@@ -33,7 +33,7 @@ export async function processAppointmentRequest(
     availability: request.availability,
   });
 
-  const assessment = assessPriority(request.symptoms, 0, request.urgencyNotes);
+  const assessment = await assessPriorityAsync(request.symptoms, 0, request.urgencyNotes);
   onAssessment(assessment);
 
   await a2aBus.send("research", "front-desk", "priority.assess", {
@@ -53,7 +53,9 @@ export async function processAppointmentRequest(
 
   const isUrgent = assessment.band === "urgent" || assessment.band === "critical";
   const slots = await pasAdapter.searchAvailability({ urgent: isUrgent });
-  const slot = slots[0];
+  const slot = request.preferredSlotId
+    ? slots.find((candidate) => candidate.id === request.preferredSlotId)
+    : slots[0];
 
   if (!slot) {
     throw new Error(`No availability in ${PAS_LEDGER_NAME}`);
@@ -256,7 +258,7 @@ export async function detectCalendarConflict(
     timestamp: new Date().toISOString(),
     type: "calendar",
     title: "PAS Ledger Rescheduled",
-    description: "Front Desk Agent updated slot in System C CareFlow automatically.",
+    description: "Front Desk Agent updated slot in System C IAR automatically.",
     agentId: "front-desk",
   });
 

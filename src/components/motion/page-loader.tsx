@@ -33,7 +33,7 @@ export function PageLoader() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-careflow-teal to-careflow-teal-light shadow-lg shadow-careflow-teal/30"
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-iar-teal to-iar-teal-light shadow-lg shadow-iar-teal/30"
             >
               <Activity className="h-7 w-7 text-white" />
             </motion.div>
@@ -52,7 +52,7 @@ export function PageLoader() {
               transition={{ delay: 0.2 }}
             >
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-careflow-teal to-careflow-sky"
+                className="h-full rounded-full bg-gradient-to-r from-iar-teal to-iar-sky"
                 initial={{ x: "-100%" }}
                 animate={{ x: "100%" }}
                 transition={{ repeat: Infinity, duration: 0.9, ease: "easeInOut" }}
