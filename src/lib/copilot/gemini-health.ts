@@ -3,12 +3,12 @@ export type GeminiHealthStatus =
   | { ok: false; code: "missing_key" | "quota_depleted" | "network_error" | "unknown"; message: string };
 
 export async function checkGeminiHealth(): Promise<GeminiHealthStatus> {
-  const apiKey = process.env.GOOGLE_API_KEY?.trim();
+  const apiKey = (process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY)?.trim();
   if (!apiKey) {
     return {
       ok: false,
       code: "missing_key",
-      message: "GOOGLE_API_KEY is not set in .env.local",
+      message: "GOOGLE_API_KEY (or GEMINI_API_KEY) is not set in .env / .env.local",
     };
   }
 

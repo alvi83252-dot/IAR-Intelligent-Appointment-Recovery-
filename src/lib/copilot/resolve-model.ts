@@ -6,7 +6,7 @@ export function resolveChatModel(): string {
   const override = process.env.CHAT_MODEL?.trim();
   if (override) return override;
 
-  const googleKey = process.env.GOOGLE_API_KEY?.trim();
+  const googleKey = (process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY)?.trim();
   const openaiKey = process.env.OPENAI_API_KEY?.trim();
   const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
 
