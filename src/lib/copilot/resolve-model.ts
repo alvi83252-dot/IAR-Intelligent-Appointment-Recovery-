@@ -16,12 +16,13 @@ export function resolveChatModel(): string {
   if (openaiKey) return "openai/gpt-4o-mini";
   if (anthropicKey) return "anthropic/claude-3-5-haiku";
 
-  return "google/gemini-2.5-flash";
+  return "builtin/fallback";
 }
 
 export function chatModelLabel(model: string): string {
   if (model.startsWith("google/")) return "Google Gemini";
   if (model.startsWith("openai/")) return "OpenAI";
   if (model.startsWith("anthropic/")) return "Anthropic Claude";
+  if (model.startsWith("builtin/")) return "Built-in assistant";
   return model;
 }

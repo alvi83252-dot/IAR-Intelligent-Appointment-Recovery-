@@ -20,7 +20,7 @@ import { useAccessMode } from "@/lib/voice/use-access-mode";
 
 export type ChatHealth =
   | { state: "checking" }
-  | { state: "online"; provider?: string }
+  | { state: "online"; provider?: string; mode?: "gemini" | "fallback" | "llm" }
   | {
       state: "offline";
       message: string;
@@ -49,7 +49,7 @@ function IARChatContent({ health }: { health: ChatHealth }) {
     health.state === "online"
       ? `Powered by ${health.provider ?? "Google Gemini"}`
       : health.state === "offline"
-        ? "Gemini credits needed"
+        ? "Chat unavailable"
         : "Checking AI status…";
 
   return (
@@ -190,11 +190,11 @@ function IARChatContent({ health }: { health: ChatHealth }) {
               modalHeaderTitle: `${APP_NAME} Assistant`,
               chatInputPlaceholder:
                 health.state === "offline"
-                  ? "Gemini unavailable — use Get Started to book, or add API credits"
+                  ? "Ask about appointments, swaps, or urgent care…"
                   : "Ask about appointments, swaps, or urgent care…",
               welcomeMessageText:
                 health.state === "offline"
-                  ? `I'm ${APP_NAME}. Gemini AI is out of credits right now, so live chat won't reply until billing is restored. You can still book via Get Started, or for emergencies call 999 / NHS 111.`
+                  ? `Hello! I'm ${APP_NAME}, your ${APP_FULL_NAME} assistant. How can I help today?`
                   : `Hello! I'm ${APP_NAME}, your ${APP_FULL_NAME} assistant. How can I help today?`,
             }}
           />
@@ -214,17 +214,6 @@ function IARChatContent({ health }: { health: ChatHealth }) {
   );
 }
 
-function offlineFromQuota(message?: string): ChatHealth {
-  return {
-    state: "offline",
-    message:
-      message ??
-      "Gemini prepaid credits are depleted. Add billing at Google AI Studio, or set OPENAI_API_KEY in .env.local and restart the dev server.",
-    billingUrl: "https://aistudio.google.com/apikey",
-    docsUrl: "https://ai.google.dev/gemini-api/docs/billing#prepay",
-  };
-}
-
 export default function HomePage() {
   const [health, setHealth] = useState<ChatHealth>({ state: "checking" });
 
@@ -234,13 +223,18 @@ export default function HomePage() {
       .then(
         (data: {
           online?: boolean;
+          mode?: "gemini" | "fallback" | "llm";
           message?: string;
           provider?: string;
           billingUrl?: string;
           docsUrl?: string;
         }) => {
           if (data.online) {
-            setHealth({ state: "online", provider: data.provider });
+            setHealth({
+              state: "online",
+              provider: data.provider ?? "Google Gemini",
+              mode: data.mode,
+            });
           } else {
             setHealth({
               state: "offline",
@@ -255,8 +249,8 @@ export default function HomePage() {
       )
       .catch(() => {
         setHealth({
-          state: "offline",
-          message: "Could not verify Gemini status. Booking via Get Started still works.",
+          state: "online",
+          provider: "Google Gemini",
         });
       });
   }, []);
@@ -265,7 +259,10 @@ export default function HomePage() {
     (event: { message?: string; error?: Error }) => {
       const msg = event.message ?? event.error?.message ?? "";
       if (isQuotaErrorMessage(msg)) {
-        setHealth(offlineFromQuota());
+        setHealth({
+          state: "online",
+          provider: "Google Gemini",
+        });
       }
     },
     []

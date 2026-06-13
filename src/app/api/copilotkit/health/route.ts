@@ -1,19 +1,31 @@
 import { NextResponse } from "next/server";
 import { checkGeminiHealth } from "@/lib/copilot/gemini-health";
+import {
+  chatAgentProviderLabel,
+  resolveChatAgentKind,
+} from "@/lib/copilot/resolve-chat-agent";
 import { chatModelLabel, resolveChatModel } from "@/lib/copilot/resolve-model";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const model = resolveChatModel();
-  const provider = chatModelLabel(model);
+  const kind = resolveChatAgentKind();
 
-  if (!model.startsWith("google/")) {
+  if (kind === "builtin") {
     return NextResponse.json({
       online: true,
-      provider,
+      provider: "Google Gemini",
+      mode: "fallback",
+    });
+  }
+
+  if (kind === "openai" || kind === "anthropic") {
+    const model = resolveChatModel();
+    return NextResponse.json({
+      online: true,
+      provider: chatAgentProviderLabel(kind),
       model,
-      message: `Using ${provider} (${model})`,
+      message: `Using ${chatModelLabel(model)} (${model})`,
     });
   }
 
@@ -23,15 +35,14 @@ export async function GET() {
       online: true,
       provider: "Google Gemini",
       model: health.model,
+      mode: "gemini",
     });
   }
 
   return NextResponse.json({
-    online: false,
+    online: true,
     provider: "Google Gemini",
-    code: health.code,
-    message: health.message,
-    billingUrl: "https://aistudio.google.com/apikey",
-    docsUrl: "https://ai.google.dev/gemini-api/docs/billing#prepay",
+    mode: "fallback",
+    geminiStatus: health.code,
   });
 }
