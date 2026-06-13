@@ -1,0 +1,14 @@
+services:
+  iar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DEMO_MODE: "true"
+      NEXT_PUBLIC_DEMO_MODE: "true"
+    env_file:
+      - path: .env.local
+        required: false
+    restart: unless-stopped
