@@ -34,6 +34,10 @@ import {
 } from "@/services/orchestrator";
 import type { AppointmentRequest } from "@/types";
 import type { PatientContact } from "@/types";
+import {
+  calendarConfirmationLine,
+  pushBookingToGoogleCalendar,
+} from "@/lib/calendar/push-booking-client";
 
 pasAdapter.initialize(INITIAL_PAS_SLOTS, INITIAL_APPOINTMENTS);
 
@@ -141,14 +145,29 @@ export const useIARStore = create<IARState>((set, get) => ({
 
       get().refreshPasLedger();
 
+      const calendarResult = await pushBookingToGoogleCalendar(appointment, request.email);
+
       set((state) => ({
         lastBookedAppointment: appointment,
+        lastCalendarResult: calendarResult,
         patientContact: {
           name: request.patientName,
           email: request.email,
           phone: request.phone,
         },
         notifications: [
+          ...(calendarResult?.provider === "google_calendar"
+            ? [
+                {
+                  id: `notif_cal_${Date.now()}`,
+                  title: "Google Calendar",
+                  message: calendarConfirmationLine(calendarResult),
+                  type: "success" as const,
+                  read: false,
+                  createdAt: new Date().toISOString(),
+                },
+              ]
+            : []),
           {
             id: `notif_${Date.now()}`,
             title: "Appointment Confirmed",

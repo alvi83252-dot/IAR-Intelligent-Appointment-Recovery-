@@ -29,14 +29,18 @@ export function assessPriority(
   context?: string
 ): PriorityAssessment {
   const text = `${symptoms} ${context ?? ""}`.toLowerCase();
-  let score = 30;
+  let score = 22;
 
   for (const kw of URGENT_KEYWORDS) {
-    if (text.includes(kw)) score += 15;
+    if (text.includes(kw)) score += 18;
   }
   for (const kw of MODERATE_KEYWORDS) {
-    if (text.includes(kw)) score += 8;
+    if (text.includes(kw)) score += 10;
   }
+
+  if (symptoms.length > 40) score += 4;
+  if (symptoms.length > 100) score += 6;
+  if (context && context.trim().length > 10) score += 5;
 
   if (waitDays > 14) score += 10;
   if (waitDays > 30) score += 15;
@@ -63,6 +67,8 @@ function scoreToBand(score: number): PriorityBand {
   if (score >= 40) return "moderate";
   return "routine";
 }
+
+export { scoreToBand };
 
 function buildRationale(
   text: string,

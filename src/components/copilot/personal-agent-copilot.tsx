@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIARStore } from "@/hooks/use-iar-store";
 import { assessPriority } from "@/lib/priority";
+import { calendarConfirmationLine } from "@/lib/calendar/push-booking-client";
 import { cn } from "@/lib/utils";
 import { pasAdapter } from "@/services/pas-adapter";
 import { DEMO_PATIENT } from "@/services/mock-data";
@@ -58,7 +59,6 @@ function AppointmentChoiceCard({
   result: AppointmentChoicesResult;
 }) {
   const { agent } = useAgent({ agentId: "personal" });
-  const { copilotkit } = useCopilotKit();
   const submitAppointmentRequest = useIARStore((state) => state.submitAppointmentRequest);
   const patientContact = useIARStore((state) => state.patientContact);
   const isProcessing = useIARStore((state) => state.isProcessing);
@@ -81,12 +81,19 @@ function AppointmentChoiceCard({
       phone: contact.phone,
     });
 
+    const calendarResult = useIARStore.getState().lastCalendarResult;
+    const calendarLine = calendarConfirmationLine(calendarResult);
+
     agent.addMessage({
       id: crypto.randomUUID(),
       role: "user",
-      content: `I selected ${formatSlot(slot)} with ${slot.providerName}. Please continue.`,
+      content: `I selected ${formatSlot(slot)} with ${slot.providerName}.`,
     });
-    await copilotkit.runAgent({ agent });
+    agent.addMessage({
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: `Your GP appointment with ${slot.providerName} on ${formatSlot(slot)} is confirmed in the PAS ledger. ${calendarLine} I'll keep watching for calendar conflicts.`,
+    });
 
     return appointment;
   };
@@ -210,7 +217,14 @@ function AppointmentToolHost() {
       followUp: false,
       handler: async ({ requestText }, { signal }) => {
         if (signal?.aborted) throw new Error("Appointment option generation cancelled.");
-        const assessment = assessPriority(requestText);
+        const assessRes = await fetch("/api/priority", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symptoms: requestText, waitDays: 0 }),
+        });
+        const assessData = (await assessRes.json()) as { assessment?: PriorityAssessment };
+        const assessment =
+          assessData.assessment ?? assessPriority(requestText);
         const offers = await pasAdapter.searchAvailability({
           urgent: assessment.band === "urgent" || assessment.band === "critical",
         });
@@ -430,6 +444,7 @@ function PersonalAgentChat() {
 
 export function PersonalAgentCopilot() {
   const lastBookedAppointment = useIARStore((state) => state.lastBookedAppointment);
+  const lastCalendarResult = useIARStore((state) => state.lastCalendarResult);
   const contextValue = useMemo(
     () => ({
       confirmedAppointment: lastBookedAppointment
@@ -439,8 +454,15 @@ export function PersonalAgentCopilot() {
             location: lastBookedAppointment.location,
           }
         : null,
+      googleCalendar: lastCalendarResult
+        ? {
+            provider: lastCalendarResult.provider,
+            message: lastCalendarResult.message,
+            eventUrl: lastCalendarResult.eventUrl ?? null,
+          }
+        : null,
     }),
-    [lastBookedAppointment]
+    [lastBookedAppointment, lastCalendarResult]
   );
 
   useAgentContext({
@@ -461,12 +483,30 @@ export function PersonalAgentCopilot() {
           continues with the selected appointment.
         </p>
         {lastBookedAppointment ? (
-          <div className="mt-4 rounded-lg border border-iar-teal/30 bg-iar-teal/5 p-3 text-sm">
-            <p className="font-medium">{lastBookedAppointment.providerName}</p>
-            <p className="mt-1 text-muted-foreground">
-              {format(new Date(lastBookedAppointment.dateTime), "EEE d MMM, h:mm a")}
-            </p>
-            <p className="mt-1 text-muted-foreground">{lastBookedAppointment.location}</p>
+          <div className="mt-4 space-y-3">
+            <div className="rounded-lg border border-iar-teal/30 bg-iar-teal/5 p-3 text-sm">
+              <p className="font-medium">{lastBookedAppointment.providerName}</p>
+              <p className="mt-1 text-muted-foreground">
+                {format(new Date(lastBookedAppointment.dateTime), "EEE d MMM, h:mm a")}
+              </p>
+              <p className="mt-1 text-muted-foreground">{lastBookedAppointment.location}</p>
+            </div>
+            {lastCalendarResult ? (
+              <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                <p className="font-medium">Google Calendar</p>
+                <p className="mt-1 text-muted-foreground">{lastCalendarResult.message}</p>
+                {lastCalendarResult.eventUrl ? (
+                  <a
+                    href={lastCalendarResult.eventUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-block text-iar-teal underline-offset-2 hover:underline"
+                  >
+                    View in Google Calendar
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="mt-4 rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">

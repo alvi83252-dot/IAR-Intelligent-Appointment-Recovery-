@@ -31,7 +31,7 @@ export async function* personalAgent({ input, abortSignal }: {
       type: EventType.TEXT_MESSAGE_CONTENT,
       messageId,
       delta:
-        "That slot is confirmed in the PAS ledger. I have added it to the timeline and will keep watching for calendar conflicts.",
+        "That slot is confirmed in the PAS ledger and synced to Google Calendar when you are signed in at /setup. I'll keep watching for calendar conflicts.",
     } as BaseEvent;
     yield { type: EventType.TEXT_MESSAGE_END, messageId } as BaseEvent;
     return;

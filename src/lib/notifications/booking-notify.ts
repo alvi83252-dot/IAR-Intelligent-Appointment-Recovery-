@@ -1,4 +1,3 @@
-import { useLiveNotifications } from "@/lib/config";
 import type { NotificationPayload, NotificationResult } from "@/lib/notifications/built-in-notify";
 import {
   buildEmailHtml,
@@ -8,8 +7,7 @@ import {
   sendBuiltInSms,
 } from "@/lib/notifications/built-in-notify";
 import { generateFullCalendarPackage } from "@/lib/calendar";
-import { externalFetch } from "@/lib/external-fetch";
-import { getGmailSenderEmail, getGoogleCredentials, getTwilioCredentials } from "@/lib/integrations/credentials";
+import { getGmailSenderEmail, getGoogleCredentials } from "@/lib/integrations/credentials";
 
 export type { NotificationPayload, NotificationResult, PatientContact } from "@/lib/notifications/built-in-notify";
 export {
@@ -19,88 +17,20 @@ export {
   buildEmailActionUrl,
 } from "@/lib/notifications/built-in-notify";
 
-function normalizePhone(phone: string): string {
-  const compact = phone.replace(/[\s()-]/g, "");
-  if (compact.startsWith("+")) return compact;
-  if (compact.startsWith("00")) return `+${compact.slice(2)}`;
-  if (compact.startsWith("0") && compact.length === 11) return `+44${compact.slice(1)}`;
-  return compact;
-}
-
+/** SMS always uses in-app confirmation (no Twilio). */
 export async function sendSms(payload: NotificationPayload): Promise<NotificationResult> {
   const builtIn = sendBuiltInSms(payload);
-
-  if (!useLiveNotifications()) {
-    return builtIn;
-  }
-
-  const twilio = getTwilioCredentials();
-  if (!twilio) {
-    return {
-      ...builtIn,
-      message: `SMS confirmation ready for ${normalizePhone(payload.contact.phone)}`,
-      detail: `${builtIn.detail}\n\nTap "Open in Messages" to send from your phone. Twilio is optional.`,
-    };
-  }
-
-  const { contact, appointment } = payload;
-  const smsBody = buildSmsBody(appointment, contact);
-  const to = normalizePhone(contact.phone);
-  const { accountSid: sid, authToken: token, phoneNumber: from, messagingServiceSid } = twilio;
-
-  const auth = Buffer.from(`${sid}:${token}`).toString("base64");
-  const params = new URLSearchParams({ To: to, Body: smsBody });
-  if (messagingServiceSid) {
-    params.set("MessagingServiceSid", messagingServiceSid);
-  } else if (from) {
-    params.set("From", from);
-  }
-
-  try {
-    const response = await externalFetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${auth}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params.toString(),
-      }
-    );
-
-    if (!response.ok) {
-      const detail = await response.text();
-      return {
-        ...builtIn,
-        message: `SMS confirmation ready for ${to}`,
-        detail: detail || builtIn.detail,
-      };
-    }
-
-    return {
-      channel: "sms",
-      success: true,
-      demo: false,
-      message: `SMS sent to ${to}`,
-      detail: smsBody,
-    };
-  } catch (err) {
-    return {
-      ...builtIn,
-      message: `SMS confirmation ready for ${to}`,
-      detail: err instanceof Error ? err.message : builtIn.detail,
-    };
-  }
+  return {
+    ...builtIn,
+    message: `SMS confirmation ready for ${payload.contact.phone}`,
+    detail: `${builtIn.detail}\n\nTap "Open in Messages" to send from your phone.`,
+  };
 }
 
+/** Email via Gmail API when connected; otherwise in-app + mailto link. */
 export async function sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
   const builtIn = sendBuiltInEmail(payload);
   const { contact, appointment } = payload;
-
-  if (!useLiveNotifications()) {
-    return builtIn;
-  }
 
   const google = getGoogleCredentials();
   const sender = getGmailSenderEmail();
@@ -109,7 +39,7 @@ export async function sendEmail(payload: NotificationPayload): Promise<Notificat
     return {
       ...builtIn,
       message: `Email confirmation ready for ${contact.email}`,
-      detail: `${builtIn.detail}\n\nGmail Client ID/Secret are saved, but you still need to sign in once at /setup → Connect Google account for automatic inbox delivery. Or tap "Open in email app".`,
+      detail: `${builtIn.detail}\n\nConnect Gmail once at /setup → Sign in with Google for automatic inbox delivery.`,
     };
   }
 
@@ -159,7 +89,7 @@ export async function sendEmail(payload: NotificationPayload): Promise<Notificat
       channel: "email",
       success: true,
       demo: false,
-      message: `Email sent to ${contact.email}`,
+      message: `Email sent to ${contact.email} via Gmail`,
       detail: buildEmailPlainText(appointment, contact),
     };
   } catch (err) {

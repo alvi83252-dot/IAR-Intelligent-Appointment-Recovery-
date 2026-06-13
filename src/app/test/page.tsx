@@ -109,7 +109,7 @@ export default function IntegrationTestPage() {
           Test ElevenLabs, Google Calendar, SMS, and Gmail before going through the full booking flow.
         </p>
         <Button variant="premium" className="mt-4" asChild>
-          <Link href="/setup">Configure Twilio &amp; Google</Link>
+          <Link href="/setup">Connect Gmail</Link>
         </Button>
         <Button variant="outline" className="mt-4 ml-2" asChild>
           <Link href="/">Back to chat</Link>
@@ -157,9 +157,11 @@ export default function IntegrationTestPage() {
               <MessageSquare className="h-5 w-5 text-iar-teal" /> SMS & Gmail
             </CardTitle>
             <CardDescription>
-              Uses built-in SMS and email confirmations by default (shown on this page and your dashboard).
-              Set <code className="text-xs">NOTIFICATIONS_MODE=live</code> in <code className="text-xs">.env.local</code>{" "}
-              to send via Twilio/Gmail instead.
+              SMS uses in-app confirmation + Messages app. Email sends via Gmail after you sign in at{" "}
+              <Link href="/setup" className="text-iar-teal underline-offset-2 hover:underline">
+                /setup
+              </Link>
+              .
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

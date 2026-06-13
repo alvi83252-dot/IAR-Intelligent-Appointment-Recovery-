@@ -2,11 +2,13 @@
  * Picks the CopilotKit BuiltInAgent model from env.
  * Set CHAT_MODEL to override (e.g. openai/gpt-4o-mini).
  */
+import { getGeminiApiKey } from "@/lib/gemini/config";
+
 export function resolveChatModel(): string {
   const override = process.env.CHAT_MODEL?.trim();
   if (override) return override;
 
-  const googleKey = process.env.GOOGLE_API_KEY?.trim();
+  const googleKey = getGeminiApiKey();
   const openaiKey = process.env.OPENAI_API_KEY?.trim();
   const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
 

@@ -1,6 +1,6 @@
 import { addDays } from "date-fns";
 import { a2aBus } from "@/agents/a2a-bus";
-import { assessPriority } from "@/lib/priority";
+import { assessPriorityAsync } from "@/lib/priority/gemini-assess";
 import { PAS_LEDGER_NAME } from "@/lib/config";
 import { generateId } from "@/lib/utils";
 import { pasAdapter } from "@/services/pas-adapter";
@@ -33,7 +33,7 @@ export async function processAppointmentRequest(
     availability: request.availability,
   });
 
-  const assessment = assessPriority(request.symptoms, 0, request.urgencyNotes);
+  const assessment = await assessPriorityAsync(request.symptoms, 0, request.urgencyNotes);
   onAssessment(assessment);
 
   await a2aBus.send("research", "front-desk", "priority.assess", {

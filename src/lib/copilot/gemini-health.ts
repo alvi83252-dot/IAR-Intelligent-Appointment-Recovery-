@@ -1,18 +1,20 @@
+import { getGeminiApiKey, getGeminiModel } from "@/lib/gemini/config";
+
 export type GeminiHealthStatus =
   | { ok: true; model: string }
   | { ok: false; code: "missing_key" | "quota_depleted" | "network_error" | "unknown"; message: string };
 
 export async function checkGeminiHealth(): Promise<GeminiHealthStatus> {
-  const apiKey = process.env.GOOGLE_API_KEY?.trim();
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return {
       ok: false,
       code: "missing_key",
-      message: "GOOGLE_API_KEY is not set in .env.local",
+      message: "GEMINI_API_KEY or GOOGLE_API_KEY is not set in .env.local",
     };
   }
 
-  const model = "gemini-2.0-flash";
+  const model = getGeminiModel("research");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   try {

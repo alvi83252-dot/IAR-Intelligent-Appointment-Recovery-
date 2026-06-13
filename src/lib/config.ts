@@ -2,9 +2,9 @@ export const isDemoMode =
   process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
   process.env.DEMO_MODE === "true";
 
-/** Built-in SMS/email by default. Set NOTIFICATIONS_MODE=live to use Twilio/Gmail. */
+/** @deprecated SMS is always in-app. Gmail sends when OAuth is connected. */
 export function useLiveNotifications(): boolean {
-  return process.env.NOTIFICATIONS_MODE?.trim() === "live";
+  return false;
 }
 
 export const DEFAULT_GOOGLE_MEETUP_BOOKING_URL =

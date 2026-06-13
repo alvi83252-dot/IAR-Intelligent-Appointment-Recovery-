@@ -30,21 +30,24 @@ export default function BookingConfirmationPage() {
     if (!appointment || !patientContact) return;
     setSending(true);
     try {
-      const [notifyRes, calendarRes] = await Promise.all([
-        fetch("/api/notifications/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contact: patientContact, appointment }),
-        }),
-        fetch("/api/calendar/push", {
+      const existingCalendar = useIARStore.getState().lastCalendarResult;
+      const notifyRes = await fetch("/api/notifications/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact: patientContact, appointment }),
+      });
+
+      let calendarData = existingCalendar;
+      if (!existingCalendar) {
+        const calendarRes = await fetch("/api/calendar/push", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ appointment, email: patientContact.email }),
-        }),
-      ]);
+        });
+        calendarData = await calendarRes.json();
+      }
 
       const notifyData = await notifyRes.json();
-      const calendarData = await calendarRes.json();
 
       useIARStore.setState((state) => {
         const results = notifyData.results ?? null;
@@ -185,13 +188,13 @@ export default function BookingConfirmationPage() {
             {gmailReady === false && (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
                 <p className="font-medium text-amber-900 dark:text-amber-200">
-                  Gmail is not connected yet — emails won&apos;t arrive in your inbox automatically.
+                  Gmail is not connected — emails won&apos;t arrive in your inbox automatically.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Client ID &amp; Secret alone cannot send email. Sign in once with Google:
+                  Sign in with Google once (Gmail only — no Twilio):
                 </p>
-                <Button variant="outline" size="sm" className="mt-2" asChild>
-                  <a href="/api/integrations/google/auth">Connect Google account</a>
+                <Button variant="premium" size="sm" className="mt-2" asChild>
+                  <Link href="/setup">Sign in with Google</Link>
                 </Button>
               </div>
             )}
