@@ -34,7 +34,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2">
           <motion.div
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-careflow-teal to-careflow-teal-light"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-iar-teal to-iar-teal-light"
           >
             <Activity className="h-4 w-4 text-white" />
           </motion.div>

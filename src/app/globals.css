@@ -70,6 +70,6 @@
     @apply border-white/10 bg-white/5;
   }
   .text-gradient {
-    @apply bg-gradient-to-r from-careflow-teal to-careflow-sky bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-iar-teal to-iar-sky bg-clip-text text-transparent;
   }
 }

@@ -10,7 +10,7 @@ function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-class SystemCCareFlowAdapter {
+class SystemCIARAdapter {
   private slots: PasSlot[] = [];
   private appointments: Appointment[] = [];
   private writeLog: PasWriteLog[] = [];
@@ -155,4 +155,4 @@ class SystemCCareFlowAdapter {
   }
 }
 
-export const pasAdapter = new SystemCCareFlowAdapter();
+export const pasAdapter = new SystemCIARAdapter();

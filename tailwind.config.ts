@@ -39,7 +39,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        careflow: {
+        iar: {
           teal: "#0D9488",
           "teal-light": "#14B8A6",
           navy: "#0F172A",

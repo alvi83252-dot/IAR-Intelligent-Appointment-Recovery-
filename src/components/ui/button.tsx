@@ -15,7 +15,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         premium:
-          "bg-gradient-to-r from-careflow-teal to-careflow-teal-light text-white shadow-lg shadow-careflow-teal/25 hover:shadow-careflow-teal/40 hover:scale-[1.02]",
+          "bg-gradient-to-r from-iar-teal to-iar-teal-light text-white shadow-lg shadow-iar-teal/25 hover:shadow-iar-teal/40 hover:scale-[1.02]",
       },
       size: {
         default: "h-10 px-4 py-2",

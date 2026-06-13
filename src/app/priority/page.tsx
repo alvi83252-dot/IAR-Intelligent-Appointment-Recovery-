@@ -6,12 +6,12 @@ import { ArrowRight, Brain, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PriorityBadge } from "@/components/priority/priority-badge";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { assessPriority } from "@/lib/priority";
 
 export default function PriorityAssessmentPage() {
-  const lastAssessment = useCareFlowStore((s) => s.lastAssessment);
-  const lastBooked = useCareFlowStore((s) => s.lastBookedAppointment);
+  const lastAssessment = useIARStore((s) => s.lastAssessment);
+  const lastBooked = useIARStore((s) => s.lastBookedAppointment);
 
   const assessment = lastAssessment ?? assessPriority("Routine check-up", 5);
 
@@ -56,7 +56,7 @@ export default function PriorityAssessmentPage() {
                   initial={{ width: 0 }}
                   animate={{ width: `${assessment.score}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-careflow-teal"
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-iar-teal"
                 />
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function PriorityAssessmentPage() {
                     transition={{ delay: 0.4 + i * 0.1 }}
                     className="flex items-start gap-2 text-sm"
                   >
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-careflow-teal" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-iar-teal" />
                     {rec}
                   </motion.li>
                 ))}

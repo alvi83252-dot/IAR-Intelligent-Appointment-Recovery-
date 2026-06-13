@@ -26,7 +26,7 @@ export function A2AMessageFeed({ messages, maxItems = 20 }: A2AMessageFeedProps)
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <MessageSquare className="h-4 w-4 text-careflow-teal" />
+          <MessageSquare className="h-4 w-4 text-iar-teal" />
           A2A Message Bus
         </CardTitle>
       </CardHeader>

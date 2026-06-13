@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useCareFlowStore } from "@/hooks/use-careflow-store";
+import { useIARStore } from "@/hooks/use-iar-store";
 import { DEMO_SCENARIOS } from "@/services/mock-data";
 import { APP_NAME, isDemoMode, PAS_LEDGER_NAME } from "@/lib/config";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
@@ -34,11 +34,11 @@ const scenarioActions: Record<string, { label: string; href?: string; action?: s
 };
 
 export default function DemoControlCenterPage() {
-  const resetDemo = useCareFlowStore((s) => s.resetDemo);
-  const runCalendarConflictDemo = useCareFlowStore((s) => s.runCalendarConflictDemo);
-  const runDisruptionRecovery = useCareFlowStore((s) => s.runDisruptionRecovery);
-  const isProcessing = useCareFlowStore((s) => s.isProcessing);
-  const demoScenarioRunning = useCareFlowStore((s) => s.demoScenarioRunning);
+  const resetDemo = useIARStore((s) => s.resetDemo);
+  const runCalendarConflictDemo = useIARStore((s) => s.runCalendarConflictDemo);
+  const runDisruptionRecovery = useIARStore((s) => s.runDisruptionRecovery);
+  const isProcessing = useIARStore((s) => s.isProcessing);
+  const demoScenarioRunning = useIARStore((s) => s.demoScenarioRunning);
 
   const handleAction = async (scenarioId: string) => {
     const config = scenarioActions[scenarioId];
@@ -51,8 +51,8 @@ export default function DemoControlCenterPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-careflow-teal/10">
-              <Settings className="h-6 w-6 text-careflow-teal" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-iar-teal/10">
+              <Settings className="h-6 w-6 text-iar-teal" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Demo Control Center</h1>
@@ -70,7 +70,7 @@ export default function DemoControlCenterPage() {
         </div>
       </motion.div>
 
-      <Card className="mt-8 border-careflow-teal/20 bg-careflow-teal/5">
+      <Card className="mt-8 border-iar-teal/20 bg-iar-teal/5">
         <CardContent className="p-6">
           <p className="text-sm">
             <strong>Demo Mode</strong> — {APP_NAME} agents coordinate GP appointments and write to a mock{" "}
@@ -96,7 +96,7 @@ export default function DemoControlCenterPage() {
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-                      <Icon className="h-5 w-5 text-careflow-teal" />
+                      <Icon className="h-5 w-5 text-iar-teal" />
                     </div>
                     <div>
                       <CardTitle className="text-base">{scenario.name}</CardTitle>
@@ -111,7 +111,7 @@ export default function DemoControlCenterPage() {
                   <ol className="space-y-1">
                     {scenario.steps.map((step, j) => (
                       <li key={step} className="flex gap-2 text-xs text-muted-foreground">
-                        <span className="font-mono text-careflow-teal">{j + 1}.</span>
+                        <span className="font-mono text-iar-teal">{j + 1}.</span>
                         {step}
                       </li>
                     ))}
