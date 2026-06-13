@@ -12,8 +12,8 @@
     "postinstall": "node -e \"const fs=require('fs');const p='public/copilotkit.css';const s='node_modules/@copilotkit/react-core/dist/v2/index.css';if(fs.existsSync(s)){fs.mkdirSync('public',{recursive:true});fs.copyFileSync(s,p);}\""
   },
   "dependencies": {
-    "@copilotkit/react-core": "^1.60.1",
-    "@copilotkit/runtime": "^1.60.1",
+    "@copilotkit/react-core": "^1.56.2",
+    "@copilotkit/runtime": "^1.56.2",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -27,6 +27,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwind-merge": "^2.6.0",
+    "zod": "^3.25.76",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

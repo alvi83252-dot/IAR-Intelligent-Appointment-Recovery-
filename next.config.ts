@@ -7,14 +7,10 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: false },
   outputFileTracingRoot: path.join(__dirname),
   webpack: (config, { webpack }) => {
-    const shimPath = path.resolve(__dirname, "src/styles/copilotkit-shim.css");
     config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /^\.\/index\.css$/,
-        (resource: { context: string; request: string }) => {
-        if (resource.context.includes(`${path.sep}@copilotkit${path.sep}react-core${path.sep}`)) {
-          resource.request = shimPath;
-        }
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/index\.css$/,
+        contextRegExp: /@copilotkit[\\/]react-core[\\/]dist[\\/]v2$/,
       })
     );
     return config;
