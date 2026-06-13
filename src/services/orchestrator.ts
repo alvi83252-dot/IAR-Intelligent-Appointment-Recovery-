@@ -53,7 +53,9 @@ export async function processAppointmentRequest(
 
   const isUrgent = assessment.band === "urgent" || assessment.band === "critical";
   const slots = await pasAdapter.searchAvailability({ urgent: isUrgent });
-  const slot = slots[0];
+  const slot = request.preferredSlotId
+    ? slots.find((candidate) => candidate.id === request.preferredSlotId)
+    : slots[0];
 
   if (!slot) {
     throw new Error(`No availability in ${PAS_LEDGER_NAME}`);
