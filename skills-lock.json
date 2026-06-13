@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "agents": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "agents/SKILL.md",
+      "computedHash": "5032e51d7e621e4a5fe7afa75bca4dbc836b008cfaffca9a90be62fbe1bcfa16"
+    },
+    "setup-api-key": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "setup-api-key/SKILL.md",
+      "computedHash": "7dd0a26da03b0265933059b85b8c90078b19191acce74270615e80679c9d3bf3"
+    },
+    "sound-effects": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "sound-effects/SKILL.md",
+      "computedHash": "49dba2b616f4a9b3fcd210c6b8019e0a9909994c7b56c8aebbffbecda61b9f93"
+    },
+    "speech-engine": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "speech-engine/SKILL.md",
+      "computedHash": "6b26a7796235f2fd916338656e579547a9ba560931cded7fee88b3b7c3cac006"
+    },
+    "speech-to-text": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "speech-to-text/SKILL.md",
+      "computedHash": "e3bdf8267fbf5762fc379d928379058b2461bf74fadf11bb4bc8347a53baf843"
+    },
+    "text-to-speech": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "text-to-speech/SKILL.md",
+      "computedHash": "58648bd4ced042dc17c035505a2984ca82f1a373be68e6e083e0a317b76893a4"
+    },
+    "update-skills-from-changelog": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/update-skills-from-changelog/SKILL.md",
+      "computedHash": "20a9827b91d3d81b945ab325b402e594ff379a85def8172ce7e4cc32552effe6"
+    },
+    "voice-isolator": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "skillPath": "voice-isolator/SKILL.md",
+      "computedHash": "fe03f49962032720a8cac61f7dfbc4f7555acfd0f20be68b9713751e07e74d2f"
+    }
+  }
+}

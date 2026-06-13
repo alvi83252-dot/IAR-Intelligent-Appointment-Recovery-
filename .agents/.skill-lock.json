@@ -1,0 +1,87 @@
+{
+  "version": 3,
+  "skills": {
+    "agents": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "agents/SKILL.md",
+      "skillFolderHash": "41a32ec82d1470b79c08a924d575191742ea5bb4",
+      "installedAt": "2026-06-06T23:28:33.873Z",
+      "updatedAt": "2026-06-06T23:28:33.873Z"
+    },
+    "setup-api-key": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "setup-api-key/SKILL.md",
+      "skillFolderHash": "73417b7453b2b9115ab3b35a4f18b52c7afccc7e",
+      "installedAt": "2026-06-06T23:28:33.875Z",
+      "updatedAt": "2026-06-06T23:28:33.875Z"
+    },
+    "speech-engine": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "speech-engine/SKILL.md",
+      "skillFolderHash": "053324833eb9ccded87ef12d0058fae0ea76dcee",
+      "installedAt": "2026-06-06T23:28:33.876Z",
+      "updatedAt": "2026-06-06T23:28:33.876Z"
+    },
+    "speech-to-text": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "speech-to-text/SKILL.md",
+      "skillFolderHash": "633346a735c92948440c4ea75798fbcc988a8b56",
+      "installedAt": "2026-06-06T23:28:33.877Z",
+      "updatedAt": "2026-06-06T23:28:33.877Z"
+    },
+    "text-to-speech": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "text-to-speech/SKILL.md",
+      "skillFolderHash": "dd84f377254e264d24bb9191d502708fb574ef58",
+      "installedAt": "2026-06-06T23:28:33.878Z",
+      "updatedAt": "2026-06-06T23:28:33.878Z"
+    },
+    "voice-isolator": {
+      "source": "elevenlabs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/elevenlabs/skills.git",
+      "skillPath": "voice-isolator/SKILL.md",
+      "skillFolderHash": "a2a735dead3187afb8a175f2fbb1218b9c0c4160",
+      "installedAt": "2026-06-06T23:28:33.879Z",
+      "updatedAt": "2026-06-06T23:28:33.879Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "3013fdeb8a11b10b1eb795ec3ae8bfca38f7c26d",
+      "installedAt": "2026-06-06T23:28:58.565Z",
+      "updatedAt": "2026-06-06T23:28:58.565Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "antigravity-cli",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-code-cli",
+    "opencode",
+    "warp",
+    "zed",
+    "claude-code"
+  ]
+}
