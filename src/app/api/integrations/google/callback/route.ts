@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getGoogleOAuthClientConfig } from "@/lib/integrations/credentials";
+import { getGoogleOAuthRedirectUri } from "@/lib/integrations/google-oauth";
 import { isIntegrationsSetupAllowed, readIntegrationsStore, writeIntegrationsStore } from "@/lib/integrations/store";
 
 export const dynamic = "force-dynamic";
-
-function getRedirectUri(request: Request): string {
-  const url = new URL(request.url);
-  return `${url.origin}/api/integrations/google/callback`;
-}
 
 export async function GET(request: Request) {
   if (!isIntegrationsSetupAllowed()) {
@@ -38,7 +34,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const redirectUri = getRedirectUri(request);
+    const redirectUri = getGoogleOAuthRedirectUri(request);
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

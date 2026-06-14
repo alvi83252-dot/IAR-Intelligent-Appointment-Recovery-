@@ -1,19 +1,10 @@
 import type { Appointment } from "@/types";
+import type { CalendarPushResult } from "@/types/calendar";
 import { GOOGLE_MEETUP_BOOKING_URL } from "@/lib/config";
 import { getGoogleCredentials } from "@/lib/integrations/credentials";
 import { formatDate, formatTime } from "@/lib/utils";
 
-export interface CalendarPushResult {
-  success: boolean;
-  provider: "google_calendar" | "google_meetup" | "ics_only";
-  message: string;
-  eventId?: string;
-  eventUrl?: string;
-  meetupBookingUrl?: string;
-  calendarUrl?: string;
-  detail?: string;
-}
-
+export type { CalendarPushResult } from "@/types/calendar";
 function meetupBookingResult(appointment: Appointment, extra?: Partial<CalendarPushResult>): CalendarPushResult {
   const when = `${formatDate(appointment.dateTime)} at ${formatTime(appointment.dateTime)}`;
 

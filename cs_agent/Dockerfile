@@ -4,6 +4,7 @@ WORKDIR /app
 COPY cs_agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY agent_llm.py .
 COPY cs_agent/ .
 COPY kb/ ./kb/
 

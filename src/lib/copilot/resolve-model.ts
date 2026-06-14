@@ -1,27 +1,31 @@
 /**
  * Picks the CopilotKit BuiltInAgent model from env.
- * Set CHAT_MODEL to override (e.g. openai/gpt-4o-mini).
+ * Defaults to FreeLLMAPI (OpenAI-compatible) when configured.
  */
-import { getGeminiApiKey } from "@/lib/gemini/config";
+import {
+  bootstrapOpenLlmEnv,
+  isOpenLlmConfigured,
+  openLlmChatModelId,
+} from "@/lib/llm/open-llm";
 
 export function resolveChatModel(): string {
+  bootstrapOpenLlmEnv();
+
   const override = process.env.CHAT_MODEL?.trim();
   if (override) return override;
 
-  const googleKey = getGeminiApiKey();
-  const openaiKey = process.env.OPENAI_API_KEY?.trim();
-  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (isOpenLlmConfigured()) return openLlmChatModelId();
 
-  if (googleKey) return "google/gemini-2.5-flash";
-  if (openaiKey) return "openai/gpt-4o-mini";
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (anthropicKey) return "anthropic/claude-3-5-haiku";
 
   return "builtin/fallback";
 }
 
 export function chatModelLabel(model: string): string {
-  if (model.startsWith("google/")) return "Google Gemini";
-  if (model.startsWith("openai/")) return "OpenAI";
+  if (model.startsWith("openai/")) {
+    return isOpenLlmConfigured() ? "FreeLLMAPI (local)" : "OpenAI";
+  }
   if (model.startsWith("anthropic/")) return "Anthropic Claude";
   if (model.startsWith("builtin/")) return "Built-in assistant";
   return model;

@@ -7,6 +7,9 @@ import {
 import { handle } from "hono/vercel";
 import { personalAgent } from "@/lib/copilot/personal-agent";
 import { createDefaultChatAgent } from "@/lib/copilot/resolve-chat-agent";
+import { bootstrapOpenLlmEnv } from "@/lib/llm/open-llm";
+
+bootstrapOpenLlmEnv();
 
 const defaultAgent = createDefaultChatAgent();
 

@@ -3,4 +3,5 @@
 # Additional agent deps (a2a-sdk, fastapi/uvicorn, pydantic, httpx, ics, ...)
 # are added as the A2A servers are built out — see CLAUDE.md "Repo structure".
 google-genai>=0.3.0
+openai>=1.40.0
 python-dotenv>=1.0.0

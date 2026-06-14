@@ -21,7 +21,6 @@ export default function BookingConfirmationPage() {
   const calendarResult = useIARStore((s) => s.lastCalendarResult);
 
   const [sending, setSending] = useState(false);
-  const [gmailReady, setGmailReady] = useState<boolean | null>(null);
   const sentRef = useRef(false);
 
   const appointment = lastBooked ?? appointments[0];
@@ -73,13 +72,6 @@ export default function BookingConfirmationPage() {
       setSending(false);
     }
   };
-
-  useEffect(() => {
-    void fetch("/api/integrations/google/settings")
-      .then((r) => r.json())
-      .then((d: { gmailConfigured?: boolean }) => setGmailReady(!!d.gmailConfigured))
-      .catch(() => setGmailReady(false));
-  }, []);
 
   useEffect(() => {
     if (!appointment || !patientContact || sentRef.current) return;
@@ -184,19 +176,6 @@ export default function BookingConfirmationPage() {
                 To <strong>{patientContact.phone}</strong> (SMS) and{" "}
                 <strong>{patientContact.email}</strong> (email)
               </p>
-            )}
-            {gmailReady === false && (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-                <p className="font-medium text-amber-900 dark:text-amber-200">
-                  Gmail is not connected — emails won&apos;t arrive in your inbox automatically.
-                </p>
-                <p className="mt-1 text-muted-foreground">
-                  Sign in with Google once (Gmail only — no Twilio):
-                </p>
-                <Button variant="premium" size="sm" className="mt-2" asChild>
-                  <Link href="/setup">Sign in with Google</Link>
-                </Button>
-              </div>
             )}
             {notificationResults?.map((result) => (
               <div key={result.channel} className="flex items-start gap-2">

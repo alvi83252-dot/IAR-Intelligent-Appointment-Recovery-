@@ -4,6 +4,7 @@ WORKDIR /app
 COPY personal_agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY agent_llm.py .
 COPY personal_agent/ .
 
 EXPOSE 9001

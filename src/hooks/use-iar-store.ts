@@ -14,6 +14,7 @@ import type {
   SwapProposal,
   TimelineEvent,
 } from "@/types";
+import type { CalendarPushResult } from "@/types/calendar";
 import type { PasLedgerSnapshot, PasWriteLog } from "@/types/pas";
 import {
   CAPACITY_METRICS,
@@ -60,15 +61,7 @@ interface IARState {
     detail?: string;
     actionUrl?: string;
   }> | null;
-  lastCalendarResult: {
-    success: boolean;
-    provider: string;
-    message: string;
-    eventUrl?: string;
-    meetupBookingUrl?: string;
-    calendarUrl?: string;
-    detail?: string;
-  } | null;
+  lastCalendarResult: CalendarPushResult | null;
   capacityMetrics: typeof CAPACITY_METRICS;
   pasSnapshot: PasLedgerSnapshot;
   pasWriteLog: PasWriteLog[];

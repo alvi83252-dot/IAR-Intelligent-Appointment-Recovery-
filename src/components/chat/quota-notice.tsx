@@ -19,13 +19,13 @@ export function QuotaNotice({ message, billingUrl, docsUrl }: QuotaNoticeProps) 
       <div className="flex gap-3">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
         <div className="space-y-2">
-          <p className="font-medium">Gemini AI chat is temporarily unavailable</p>
+          <p className="font-medium">AI chat is temporarily unavailable</p>
           <p className="text-amber-900/90 dark:text-amber-100/90">{message}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             {billingUrl && (
               <Button variant="outline" size="sm" asChild className="h-8 border-amber-500/40 bg-background/80">
                 <a href={billingUrl} target="_blank" rel="noopener noreferrer">
-                  Add Gemini credits
+                  Setup guide
                   <ExternalLink className="ml-1 h-3 w-3" />
                 </a>
               </Button>

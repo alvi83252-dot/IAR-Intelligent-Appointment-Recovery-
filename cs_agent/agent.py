@@ -1,14 +1,21 @@
 """IAR GP practice front desk agent: policy + env tools + KB search (RAG)."""
 
 import os
+import sys
 from pathlib import Path
+
+_agent_dir = Path(__file__).resolve().parent
+for candidate in (_agent_dir, _agent_dir.parent):
+    if (candidate / "agent_llm.py").exists():
+        sys.path.insert(0, str(candidate))
+        break
 
 from google.adk.agents import LlmAgent
 
+from agent_llm import resolve_adk_model
 from env_toolset import EnvApiToolset
 from rag_tools import kb_search_bm25, kb_search_vector
 
-MODEL = os.environ.get("MODEL", "gemini-3.5-flash")
 POLICY_PATH = Path(os.environ.get("KB_POLICY_PATH", "/app/kb/policy.md"))
 
 RAG_GUIDANCE = """
@@ -28,7 +35,7 @@ find the information.
 
 root_agent = LlmAgent(
     name="cs_agent",
-    model=MODEL,
+    model=resolve_adk_model(),
     instruction=POLICY_PATH.read_text() + RAG_GUIDANCE,
     tools=[EnvApiToolset(), kb_search_bm25, kb_search_vector],
 )

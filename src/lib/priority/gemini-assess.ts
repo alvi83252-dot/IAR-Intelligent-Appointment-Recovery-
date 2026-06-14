@@ -1,7 +1,6 @@
 import type { PriorityAssessment, PriorityBand } from "@/types";
-import { externalFetch } from "@/lib/external-fetch";
-import { getGeminiApiKey, getGeminiModel } from "@/lib/gemini/config";
 import { assessPriority, scoreToBand } from "@/lib/priority";
+import { getOpenLlmModel, openLlmChatCompletion } from "@/lib/llm/open-llm";
 
 function clampScore(score: number): number {
   return Math.min(100, Math.max(0, Math.round(score)));
@@ -15,7 +14,7 @@ function normalizeBand(band: string | undefined, score: number): PriorityBand {
   return scoreToBand(score);
 }
 
-function parseGeminiAssessment(
+function parseLlmAssessment(
   text: string,
   symptoms: string,
   waitDays: number
@@ -46,7 +45,7 @@ function parseGeminiAssessment(
       rationale:
         typeof parsed.rationale === "string" && parsed.rationale.trim()
           ? parsed.rationale.trim()
-          : `Gemini assessed priority ${band} (${score}/100) for: ${symptoms.slice(0, 120)}`,
+          : `LLM assessed priority ${band} (${score}/100) for: ${symptoms.slice(0, 120)}`,
       confidence:
         typeof parsed.confidence === "number"
           ? Math.min(1, Math.max(0, parsed.confidence))
@@ -61,17 +60,11 @@ function parseGeminiAssessment(
   }
 }
 
-export async function assessPriorityWithGemini(
+export async function assessPriorityWithLlm(
   symptoms: string,
   waitDays = 0,
   context?: string
 ): Promise<PriorityAssessment | null> {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) return null;
-
-  const model = getGeminiModel("research");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
   const prompt = `You are an NHS GP triage research agent. Assess clinical priority for a GP appointment request.
 
 Symptoms: ${symptoms}
@@ -87,39 +80,27 @@ Score 0-100 where:
 Return JSON only (no markdown):
 {"score":number,"band":"routine|moderate|urgent|critical","rationale":"2-3 sentences","confidence":0.0-1.0,"recommendations":["action1","action2","action3"]}`;
 
-  try {
-    const response = await externalFetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 512,
-          responseMimeType: "application/json",
-        },
-      }),
-    });
+  const text = await openLlmChatCompletion({
+    messages: [{ role: "user", content: prompt }],
+    model: getOpenLlmModel("research"),
+    temperature: 0.2,
+    maxTokens: 512,
+    jsonMode: true,
+  });
 
-    if (!response.ok) return null;
-
-    const data = (await response.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    return parseGeminiAssessment(text, symptoms, waitDays);
-  } catch {
-    return null;
-  }
+  if (!text) return null;
+  return parseLlmAssessment(text, symptoms, waitDays);
 }
+
+/** @deprecated Use assessPriorityWithLlm */
+export const assessPriorityWithGemini = assessPriorityWithLlm;
 
 export async function assessPriorityAsync(
   symptoms: string,
   waitDays = 0,
   context?: string
 ): Promise<PriorityAssessment> {
-  const geminiResult = await assessPriorityWithGemini(symptoms, waitDays, context);
-  if (geminiResult) return geminiResult;
+  const llmResult = await assessPriorityWithLlm(symptoms, waitDays, context);
+  if (llmResult) return llmResult;
   return assessPriority(symptoms, waitDays, context);
 }

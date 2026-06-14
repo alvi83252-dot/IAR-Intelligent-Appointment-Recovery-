@@ -1,13 +1,20 @@
 """The patient's personal GP appointment assistant."""
 
 import os
+import sys
+from pathlib import Path
+
+_agent_dir = Path(__file__).resolve().parent
+for candidate in (_agent_dir, _agent_dir.parent):
+    if (candidate / "agent_llm.py").exists():
+        sys.path.insert(0, str(candidate))
+        break
 
 from google.adk.agents import LlmAgent
 
+from agent_llm import resolve_adk_model
 from cs_client_tool import ask_customer_service
 from env_toolset import EnvApiToolset
-
-MODEL = os.environ.get("MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """\
 You are the patient's personal assistant for GP appointments via IAR
@@ -34,7 +41,7 @@ You are the patient's personal assistant for GP appointments via IAR
 
 root_agent = LlmAgent(
     name="personal_agent",
-    model=MODEL,
+    model=resolve_adk_model(),
     instruction=INSTRUCTION,
     tools=[EnvApiToolset(), ask_customer_service],
 )

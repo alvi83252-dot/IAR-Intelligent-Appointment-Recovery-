@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getGoogleOAuthClientConfig } from "@/lib/integrations/credentials";
+import { getGoogleOAuthRedirectUri } from "@/lib/integrations/google-oauth";
 import { isIntegrationsSetupAllowed, readIntegrationsStore, writeIntegrationsStore } from "@/lib/integrations/store";
 
 export const dynamic = "force-dynamic";
-
-function getRedirectUri(request: Request): string {
-  const url = new URL(request.url);
-  return `${url.origin}/api/integrations/google/callback`;
-}
 
 export async function GET(request: Request) {
   if (!isIntegrationsSetupAllowed()) {
@@ -48,7 +44,7 @@ export async function GET(request: Request) {
     maxAge: 600,
   });
 
-  const redirectUri = getRedirectUri(request);
+  const redirectUri = getGoogleOAuthRedirectUri(request);
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", oauth.clientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);

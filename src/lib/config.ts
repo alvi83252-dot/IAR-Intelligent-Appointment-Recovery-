@@ -1,11 +1,5 @@
 export const isDemoMode =
-  process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
-  process.env.DEMO_MODE === "true";
-
-/** @deprecated SMS is always in-app. Gmail sends when OAuth is connected. */
-export function useLiveNotifications(): boolean {
-  return false;
-}
+  process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
 
 export const DEFAULT_GOOGLE_MEETUP_BOOKING_URL =
   "https://calendar.app.google/PAm4y6BTimvayDrK9";

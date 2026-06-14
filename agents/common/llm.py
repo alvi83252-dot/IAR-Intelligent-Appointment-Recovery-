@@ -36,6 +36,47 @@ class LLMClient(Protocol):
 
 
 @dataclass
+class OpenAICompatClient:
+    """OpenAI-compatible chat API (FreeLLMAPI, local llama, etc.)."""
+
+    model: str
+    api_key: str
+    base_url: str
+    _client: object = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not self.api_key:
+            raise LLMError(
+                "FREELLMAPI_API_KEY (or OPENAI_API_KEY) is not set. See .env.example."
+            )
+        try:
+            from openai import OpenAI  # type: ignore import-not-found
+        except ImportError as exc:
+            raise LLMError(
+                "openai package is not installed. Run: pip install -r requirements.txt"
+            ) from exc
+        self._client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+
+    def complete(self, prompt: str, *, system: str | None = None) -> str:
+        messages: list[dict[str, str]] = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        try:
+            resp = self._client.chat.completions.create(  # type: ignore[attr-defined]
+                model=self.model,
+                messages=messages,
+                temperature=0.6,
+                max_tokens=512,
+            )
+        except Exception as exc:
+            raise LLMError(
+                f"OpenAI-compatible call failed (model={self.model}): {exc}"
+            ) from exc
+        return (resp.choices[0].message.content or "").strip()
+
+
+@dataclass
 class GeminiClient:
     """Google Gemini implementation of :class:`LLMClient` (via ``google-genai``)."""
 
@@ -70,20 +111,30 @@ class GeminiClient:
 
 
 # provider name -> implementation. Add new providers here only.
-_PROVIDERS: dict[str, type] = {"gemini": GeminiClient}
+_PROVIDERS: dict[str, type] = {
+    "openai": OpenAICompatClient,
+    "freellmapi": OpenAICompatClient,
+    "gemini": GeminiClient,
+}
 
 
 def get_llm(agent: str) -> LLMClient:
     """Return an LLM client for ``agent`` (personal|frontdesk|research).
 
     Model comes from :func:`config.model_for`; provider from ``LLM_PROVIDER``
-    (default ``gemini``). Raises :class:`LLMError` on misconfiguration.
+    (default ``openai`` / FreeLLMAPI). Raises :class:`LLMError` on misconfiguration.
     """
     provider = config.LLM_PROVIDER.lower()
     impl = _PROVIDERS.get(provider)
     if impl is None:
         raise LLMError(
             f"Unknown LLM_PROVIDER '{provider}'. Known providers: {sorted(_PROVIDERS)}"
+        )
+    if impl is OpenAICompatClient:
+        return impl(
+            model=config.model_for(agent),
+            api_key=config.FREELLMAPI_API_KEY,
+            base_url=config.FREELLMAPI_BASE_URL,
         )
     return impl(model=config.model_for(agent), api_key=config.GEMINI_API_KEY)
 

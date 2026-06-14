@@ -1,5 +1,5 @@
 import type { Appointment } from "@/types";
-import type { CalendarPushResult } from "@/lib/calendar/google-calendar";
+import type { CalendarPushResult } from "@/types/calendar";
 
 export async function pushBookingToGoogleCalendar(
   appointment: Appointment,

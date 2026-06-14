@@ -39,7 +39,7 @@ export async function sendEmail(payload: NotificationPayload): Promise<Notificat
     return {
       ...builtIn,
       message: `Email confirmation ready for ${contact.email}`,
-      detail: `${builtIn.detail}\n\nConnect Gmail once at /setup → Sign in with Google for automatic inbox delivery.`,
+      detail: builtIn.detail,
     };
   }
 

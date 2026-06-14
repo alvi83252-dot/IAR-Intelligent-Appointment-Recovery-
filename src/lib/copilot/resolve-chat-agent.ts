@@ -1,30 +1,30 @@
 import { BuiltInAgent } from "@copilotkit/runtime/v2";
 import { IAR_AGENT_PROMPT } from "@/lib/copilot/iar-agent-prompt";
 import { iarChatAgent } from "@/lib/copilot/iar-chat-agent";
-import { getGeminiApiKey } from "@/lib/gemini/config";
+import {
+  bootstrapOpenLlmEnv,
+  isOpenLlmConfigured,
+  openLlmChatModelId,
+} from "@/lib/llm/open-llm";
 
-export type ChatAgentKind = "openai" | "anthropic" | "gemini-hybrid" | "builtin";
+export type ChatAgentKind = "openai" | "anthropic" | "open-llm" | "builtin";
 
 export function resolveChatAgentKind(): ChatAgentKind {
+  bootstrapOpenLlmEnv();
+
   const override = process.env.CHAT_MODEL?.trim();
 
+  if (isOpenLlmConfigured()) {
+    return "openai";
+  }
   if (override?.startsWith("openai/") && process.env.OPENAI_API_KEY?.trim()) {
     return "openai";
   }
   if (override?.startsWith("anthropic/") && process.env.ANTHROPIC_API_KEY?.trim()) {
     return "anthropic";
   }
-  if (process.env.OPENAI_API_KEY?.trim() && (!override || override.startsWith("openai/"))) {
-    return "openai";
-  }
   if (process.env.ANTHROPIC_API_KEY?.trim() && (!override || override.startsWith("anthropic/"))) {
     return "anthropic";
-  }
-  if (override?.startsWith("google/") && getGeminiApiKey()) {
-    return "gemini-hybrid";
-  }
-  if (getGeminiApiKey()) {
-    return "gemini-hybrid";
   }
 
   return "builtin";
@@ -36,7 +36,7 @@ export function createDefaultChatAgent(): BuiltInAgent {
 
   if (kind === "openai") {
     return new BuiltInAgent({
-      model: override?.startsWith("openai/") ? override : "openai/gpt-4o-mini",
+      model: override?.startsWith("openai/") ? override : openLlmChatModelId(),
       prompt: IAR_AGENT_PROMPT,
     });
   }
@@ -57,11 +57,11 @@ export function createDefaultChatAgent(): BuiltInAgent {
 export function chatAgentProviderLabel(kind: ChatAgentKind = resolveChatAgentKind()): string {
   switch (kind) {
     case "openai":
-      return "OpenAI";
+      return isOpenLlmConfigured() ? "FreeLLMAPI (local)" : "OpenAI";
     case "anthropic":
       return "Anthropic Claude";
-    case "gemini-hybrid":
-      return "Google Gemini";
+    case "open-llm":
+      return "FreeLLMAPI (local)";
     case "builtin":
       return "Built-in assistant";
   }

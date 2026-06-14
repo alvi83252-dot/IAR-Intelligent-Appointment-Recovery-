@@ -20,7 +20,7 @@ import { useAccessMode } from "@/lib/voice/use-access-mode";
 
 export type ChatHealth =
   | { state: "checking" }
-  | { state: "online"; provider?: string; mode?: "gemini" | "fallback" | "llm" }
+  | { state: "online"; provider?: string; mode?: "fallback" | "llm" }
   | {
       state: "offline";
       message: string;
@@ -47,7 +47,7 @@ function IARChatContent({ health }: { health: ChatHealth }) {
 
   const providerLabel =
     health.state === "online"
-      ? `Powered by ${health.provider ?? "Google Gemini"}`
+      ? `Powered by ${health.provider ?? "FreeLLMAPI (local)"}`
       : health.state === "offline"
         ? "Chat unavailable"
         : "Checking AI status…";
@@ -207,7 +207,7 @@ function IARChatContent({ health }: { health: ChatHealth }) {
           className="mt-3 flex items-center justify-center gap-1 text-center text-xs text-muted-foreground"
         >
           <Sparkles className="h-3 w-3 text-iar-teal" />
-          CopilotKit chat · Google Gemini · ElevenLabs for voice when enabled
+          CopilotKit chat · FreeLLMAPI (local) · ElevenLabs for voice when enabled
         </motion.p>
       </main>
     </div>
@@ -223,7 +223,7 @@ export default function HomePage() {
       .then(
         (data: {
           online?: boolean;
-          mode?: "gemini" | "fallback" | "llm";
+          mode?: "fallback" | "llm";
           message?: string;
           provider?: string;
           billingUrl?: string;
@@ -232,7 +232,7 @@ export default function HomePage() {
           if (data.online) {
             setHealth({
               state: "online",
-              provider: data.provider ?? "Google Gemini",
+              provider: data.provider ?? "FreeLLMAPI (local)",
               mode: data.mode,
             });
           } else {
@@ -240,7 +240,7 @@ export default function HomePage() {
               state: "offline",
               message:
                 data.message ??
-                "Gemini could not be reached. Add credits or configure another LLM provider.",
+                "Local LLM could not be reached. Start FreeLLMAPI (Docker) and check .env.local.",
               billingUrl: data.billingUrl,
               docsUrl: data.docsUrl,
             });
@@ -250,7 +250,7 @@ export default function HomePage() {
       .catch(() => {
         setHealth({
           state: "online",
-          provider: "Google Gemini",
+          provider: "FreeLLMAPI (local)",
         });
       });
   }, []);
@@ -261,7 +261,7 @@ export default function HomePage() {
       if (isQuotaErrorMessage(msg)) {
         setHealth({
           state: "online",
-          provider: "Google Gemini",
+          provider: "FreeLLMAPI (local)",
         });
       }
     },

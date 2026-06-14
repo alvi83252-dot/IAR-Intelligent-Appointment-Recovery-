@@ -24,10 +24,21 @@ if load_dotenv is not None:
     load_dotenv(_REPO_ROOT / ".env")
 
 # Provider + default model (override per agent below).
-LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")
-DEFAULT_LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash")
+LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai")
+DEFAULT_LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
-# API key. Accept GOOGLE_API_KEY as an alias (the google-genai SDK uses it too).
+# FreeLLMAPI / OpenAI-compatible local LLM (preferred).
+FREELLMAPI_API_KEY: str = (
+    os.getenv("FREELLMAPI_API_KEY", "")
+    or os.getenv("OPENAI_API_KEY", "")
+)
+FREELLMAPI_BASE_URL: str = (
+    os.getenv("FREELLMAPI_BASE_URL", "")
+    or os.getenv("OPENAI_BASE_URL", "")
+    or "http://localhost:3001/v1"
+).rstrip("/")
+
+# Legacy Gemini (optional when LLM_PROVIDER=gemini).
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
 
 # Per-agent model selection. Personal + Front Desk run on Gemini Flash; research

@@ -9,9 +9,12 @@ services:
       ENV_API_URL: ${ENV_API_URL:-http://host.docker.internal:8090}
       ENV_API_TOKEN: ${PERSONAL_ENV_API_TOKEN:-dev-user-token}
       CS_AGENT_URL: ${CS_AGENT_URL:-http://cs-agent:9002}
-      MODEL: ${MODEL:-gemini-3.5-flash}
-      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-true}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      MODEL: ${MODEL:-llama-3.3-70b-versatile}
+      FREELLMAPI_API_KEY: ${FREELLMAPI_API_KEY:-}
+      FREELLMAPI_BASE_URL: ${FREELLMAPI_BASE_URL:-http://host.docker.internal:3001/v1}
+      OPENAI_API_KEY: ${FREELLMAPI_API_KEY:-}
+      OPENAI_API_BASE: ${FREELLMAPI_BASE_URL:-http://host.docker.internal:3001/v1}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
@@ -28,9 +31,12 @@ services:
       ENV_API_URL: ${ENV_API_URL:-http://host.docker.internal:8090}
       ENV_API_TOKEN: ${CS_ENV_API_TOKEN:-dev-agent-token}
       REDIS_URL: redis://redis:6379/0
-      MODEL: ${MODEL:-gemini-3.5-flash}
-      GOOGLE_GENAI_USE_VERTEXAI: ${GOOGLE_GENAI_USE_VERTEXAI:-true}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      MODEL: ${MODEL:-llama-3.3-70b-versatile}
+      FREELLMAPI_API_KEY: ${FREELLMAPI_API_KEY:-}
+      FREELLMAPI_BASE_URL: ${FREELLMAPI_BASE_URL:-http://host.docker.internal:3001/v1}
+      OPENAI_API_KEY: ${FREELLMAPI_API_KEY:-}
+      OPENAI_API_BASE: ${FREELLMAPI_BASE_URL:-http://host.docker.internal:3001/v1}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
