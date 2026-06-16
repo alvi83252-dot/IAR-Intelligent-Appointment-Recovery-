@@ -20,6 +20,7 @@ const navLinks = [
   { href: "/disruption", label: "Disruption" },
   { href: "/practice", label: "PAS Ledger" },
   { href: "/demo", label: "Demo" },
+  { href: "/setup", label: "Delivery" },
 ];
 
 export function Navbar() {

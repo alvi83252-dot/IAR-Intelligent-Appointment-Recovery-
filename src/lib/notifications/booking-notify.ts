@@ -3,11 +3,16 @@ import {
   buildEmailHtml,
   buildEmailPlainText,
   buildSmsBody,
+  normalizePhone,
   sendBuiltInEmail,
   sendBuiltInSms,
 } from "@/lib/notifications/built-in-notify";
 import { generateFullCalendarPackage } from "@/lib/calendar";
-import { getGmailSenderEmail, getGoogleCredentials } from "@/lib/integrations/credentials";
+import {
+  getGmailSenderEmail,
+  getGoogleCredentials,
+  getTwilioCredentials,
+} from "@/lib/integrations/credentials";
 
 export type { NotificationPayload, NotificationResult, PatientContact } from "@/lib/notifications/built-in-notify";
 export {
@@ -17,30 +22,100 @@ export {
   buildEmailActionUrl,
 } from "@/lib/notifications/built-in-notify";
 
-/** SMS always uses in-app confirmation (no Twilio). */
+/** SMS via Twilio when connected; otherwise in-app + sms: link. */
 export async function sendSms(payload: NotificationPayload): Promise<NotificationResult> {
   const builtIn = sendBuiltInSms(payload);
+  const twilio = getTwilioCredentials();
+
+  if (!twilio) {
+    return {
+      ...builtIn,
+      success: false,
+      message: `SMS provider not configured for ${payload.contact.phone}`,
+      detail: `${builtIn.detail}\n\nTap "Open in Messages" to send from your phone, or configure Twilio for automatic SMS delivery.`,
+    };
+  }
+
+  const to = normalizePhone(payload.contact.phone);
+  const body = buildSmsBody(payload.appointment, payload.contact);
+  const params = new URLSearchParams({
+    To: to,
+    Body: body,
+  });
+
+  if (twilio.messagingServiceSid) {
+    params.set("MessagingServiceSid", twilio.messagingServiceSid);
+  } else if (twilio.phoneNumber) {
+    params.set("From", normalizePhone(twilio.phoneNumber));
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(
+        twilio.accountSid
+      )}/Messages.json`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${twilio.accountSid}:${twilio.authToken}`).toString("base64")}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params,
+      }
+    );
+
+    const data = (await response.json().catch(() => null)) as
+      | { sid?: string; message?: string }
+      | null;
+
+    if (!response.ok) {
+      throw new Error(data?.message ?? `Twilio returned HTTP ${response.status}`);
+    }
+
+    return {
+      channel: "sms",
+      success: true,
+      demo: false,
+      message: `SMS sent to ${to}`,
+      detail: data?.sid ? `Twilio message ${data.sid}` : body,
+    };
+  } catch (err) {
+    return {
+      ...builtIn,
+      success: false,
+      message: `SMS failed for ${to}`,
+      detail: err instanceof Error ? err.message : "Twilio SMS failed",
+    };
+  }
+}
+
+function emailFallback(
+  payload: NotificationPayload,
+  message: string,
+  detail?: string
+): NotificationResult {
+  const builtIn = sendBuiltInEmail(payload);
   return {
     ...builtIn,
-    message: `SMS confirmation ready for ${payload.contact.phone}`,
-    detail: `${builtIn.detail}\n\nTap "Open in Messages" to send from your phone.`,
+    success: false,
+    message,
+    detail: detail ?? builtIn.detail,
   };
 }
 
 /** Email via Gmail API when connected; otherwise in-app + mailto link. */
 export async function sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
-  const builtIn = sendBuiltInEmail(payload);
   const { contact, appointment } = payload;
 
   const google = getGoogleCredentials();
   const sender = getGmailSenderEmail();
 
   if (!google || !sender) {
-    return {
-      ...builtIn,
-      message: `Email confirmation ready for ${contact.email}`,
-      detail: builtIn.detail,
-    };
+    return emailFallback(
+      payload,
+      `Gmail not configured for ${contact.email}`,
+      "Connect Gmail to send confirmation emails automatically, or use the mail app link."
+    );
   }
 
   const html = buildEmailHtml(appointment, contact);
@@ -93,11 +168,11 @@ export async function sendEmail(payload: NotificationPayload): Promise<Notificat
       detail: buildEmailPlainText(appointment, contact),
     };
   } catch (err) {
-    return {
-      ...builtIn,
-      message: `Email confirmation ready for ${contact.email}`,
-      detail: err instanceof Error ? err.message : buildEmailPlainText(appointment, contact),
-    };
+    return emailFallback(
+      payload,
+      `Email failed for ${contact.email}`,
+      err instanceof Error ? err.message : buildEmailPlainText(appointment, contact)
+    );
   }
 }
 

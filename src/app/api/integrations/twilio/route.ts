@@ -13,21 +13,23 @@ export async function POST(request: Request) {
       accountSid?: string;
       authToken?: string;
       phoneNumber?: string;
+      messagingServiceSid?: string;
     };
 
     const accountSid = body.accountSid?.trim();
     const authToken = body.authToken?.trim();
     const phoneNumber = body.phoneNumber?.trim();
+    const messagingServiceSid = body.messagingServiceSid?.trim();
 
-    if (!accountSid || !authToken || !phoneNumber) {
+    if (!accountSid || !authToken || (!phoneNumber && !messagingServiceSid)) {
       return NextResponse.json(
-        { error: "accountSid, authToken, and phoneNumber are required." },
+        { error: "accountSid, authToken, and either phoneNumber or messagingServiceSid are required." },
         { status: 400 }
       );
     }
 
     writeIntegrationsStore({
-      twilio: { accountSid, authToken, phoneNumber },
+      twilio: { accountSid, authToken, phoneNumber, messagingServiceSid },
     });
 
     return NextResponse.json({ ok: true, message: "Twilio credentials saved locally." });

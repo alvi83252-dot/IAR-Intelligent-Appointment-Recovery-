@@ -107,6 +107,9 @@ function IARChatContent({ health }: { health: ChatHealth }) {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/test">Test tools</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/setup">Delivery setup</Link>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -130,6 +133,7 @@ function IARChatContent({ health }: { health: ChatHealth }) {
           {[
             { label: "Book appointment", href: "/start", variant: "outline" as const },
             { label: "Voice mode", action: "voice" as const, variant: "outline" as const },
+            { label: "Delivery setup", href: "/setup", variant: "outline" as const },
             { label: "Get started", href: "/start", variant: "premium" as const },
           ].map((item, i) => (
             <motion.div

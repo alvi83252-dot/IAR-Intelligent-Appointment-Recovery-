@@ -73,7 +73,7 @@ export function buildEmailHtml(appointment: Appointment, contact: PatientContact
   `;
 }
 
-function normalizePhone(phone: string): string {
+export function normalizePhone(phone: string): string {
   const compact = phone.replace(/[\s()-]/g, "");
   if (compact.startsWith("+")) return compact;
   if (compact.startsWith("00")) return `+${compact.slice(2)}`;

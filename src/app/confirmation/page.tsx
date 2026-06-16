@@ -74,10 +74,10 @@ export default function BookingConfirmationPage() {
   };
 
   useEffect(() => {
-    if (!appointment || !patientContact || sentRef.current) return;
+    if (!appointment || !patientContact || sentRef.current || notificationResults) return;
     sentRef.current = true;
     void deliverConfirmations();
-  }, [appointment, patientContact]);
+  }, [appointment, patientContact, notificationResults]);
 
   if (!appointment) {
     return (
@@ -100,6 +100,14 @@ export default function BookingConfirmationPage() {
     calendarResult?.eventUrl ??
     calendarResult?.calendarUrl ??
     GOOGLE_MEETUP_BOOKING_URL;
+  const hasNotificationFailure = notificationResults?.some((result) => !result.success) ?? false;
+  const notificationHeading = sending
+    ? "Sending confirmations..."
+    : hasNotificationFailure
+      ? "Confirmation delivery needs setup"
+      : notificationResults
+        ? "Confirmations sent"
+        : "Confirmations";
 
   const nextOptions = [
     {
@@ -161,11 +169,11 @@ export default function BookingConfirmationPage() {
             <CardTitle className="flex items-center gap-2 text-base">
               {sending ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Sending confirmations…
+                  <Loader2 className="h-4 w-4 animate-spin" /> {notificationHeading}
                 </>
               ) : (
                 <>
-                  <MessageSquare className="h-4 w-4 text-iar-teal" /> Confirmations sent
+                  <MessageSquare className="h-4 w-4 text-iar-teal" /> {notificationHeading}
                 </>
               )}
             </CardTitle>
@@ -206,6 +214,22 @@ export default function BookingConfirmationPage() {
                 </div>
               </div>
             ))}
+            {hasNotificationFailure && patientContact && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => void deliverConfirmations()}
+                disabled={sending}
+              >
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="h-4 w-4" />
+                )}
+                Retry delivery
+              </Button>
+            )}
             {calendarResult && (
               <div className="space-y-2">
                 <p className={`flex items-start gap-2 ${calendarResult.success ? undefined : "text-destructive"}`}>

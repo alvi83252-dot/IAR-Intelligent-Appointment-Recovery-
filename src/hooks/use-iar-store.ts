@@ -139,10 +139,49 @@ export const useIARStore = create<IARState>((set, get) => ({
       get().refreshPasLedger();
 
       const calendarResult = await pushBookingToGoogleCalendar(appointment, request.email);
+      let notificationResults: IARState["lastNotificationResults"] = null;
+
+      try {
+        const notificationResponse = await fetch("/api/notifications/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contact: {
+              name: request.patientName,
+              email: request.email,
+              phone: request.phone,
+            },
+            appointment,
+          }),
+        });
+        const notificationData = (await notificationResponse.json()) as {
+          results?: IARState["lastNotificationResults"];
+          error?: string;
+        };
+
+        notificationResults = Array.isArray(notificationData.results)
+          ? notificationData.results
+          : [
+              {
+                channel: "notification",
+                success: false,
+                message: notificationData.error ?? "Confirmation delivery failed",
+              },
+            ];
+      } catch (err) {
+        notificationResults = [
+          {
+            channel: "notification",
+            success: false,
+            message: err instanceof Error ? err.message : "Confirmation delivery failed",
+          },
+        ];
+      }
 
       set((state) => ({
         lastBookedAppointment: appointment,
         lastCalendarResult: calendarResult,
+        lastNotificationResults: notificationResults,
         patientContact: {
           name: request.patientName,
           email: request.email,
@@ -161,6 +200,19 @@ export const useIARStore = create<IARState>((set, get) => ({
                 },
               ]
             : []),
+          ...(notificationResults?.map((result) => ({
+            id: `notif_${result.channel}_${Date.now()}`,
+            title:
+              result.channel === "sms"
+                ? "SMS confirmation"
+                : result.channel === "email"
+                  ? "Email confirmation"
+                  : "Confirmation delivery",
+            message: result.message,
+            type: result.success ? ("success" as const) : ("warning" as const),
+            read: false,
+            createdAt: new Date().toISOString(),
+          })) ?? []),
           {
             id: `notif_${Date.now()}`,
             title: "Appointment Confirmed",

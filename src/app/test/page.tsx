@@ -157,7 +157,7 @@ export default function IntegrationTestPage() {
               <MessageSquare className="h-5 w-5 text-iar-teal" /> SMS & Gmail
             </CardTitle>
             <CardDescription>
-              SMS uses in-app confirmation + Messages app. Email sends via Gmail after you sign in at{" "}
+              SMS sends through Twilio when connected. Email sends through Gmail after setup at{" "}
               <Link href="/setup" className="text-iar-teal underline-offset-2 hover:underline">
                 /setup
               </Link>
